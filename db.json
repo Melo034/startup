@@ -3,7 +3,6 @@
     {
       "id": "1",
       "name": "Uniwork",
-      "image": "",
       "description": "University management system",
       "services": [
         "Student enrollment",
@@ -33,47 +32,9 @@
         "website": "www.farmfresh.sl"
       },
       "operatingHours": "Mon-Sat, 8am-6pm"
-    },
-    {
-      "id": "eea2",
-      "name": "ib4me",
-      "description": "crowdfunding platform",
-      "services": [
-        "Crowdfunding",
-        "workshops",
-        "support"
-      ],
-      "address": "27B Grassfield, Lumley",
-      "image": "test.jpg",
-      "contact": {
-        "phone": "23279153915",
-        "email": "ib4me@gmail.com",
-        "website": ""
-      },
-      "operatingHours": "Mon-Fri, 9am-5pm"
     }
   ],
   "reviews": [
-    {
-      "id": "1",
-      "startupId": 1,
-      "reviewerName": "John Doe",
-      "rating": 4,
-      "comment": "Great system, very user-friendly."
-    },
-    {
-      "id": "6960",
-      "startupId": "1",
-      "reviewerName": "Joseph Melvin Kanu",
-      "rating": 3,
-      "comment": "Good work"
-    },
-    {
-      "id": "f5bd",
-      "startupId": "eea2",
-      "reviewerName": "Joseph Melvin Kanu",
-      "rating": 5,
-      "comment": "great"
-    }
+    
   ]
 }

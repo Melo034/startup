@@ -16,7 +16,7 @@ const AddEdit = () => {
 
     useEffect(() => {
         if (id) {
-            fetch(`https://my-json-server.typicode.com/Melo034/startups/startups/${id}`)
+            fetch(`https://my-json-server.typicode.com/Melo034/startup/startups/${id}`)
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to fetch startup');
                     return response.json();
@@ -53,7 +53,7 @@ const AddEdit = () => {
             ...formData,
             services: formData.services.split(',').map(s => s.trim()),
         };
-        const url = id ? `https://my-json-server.typicode.com/Melo034/startups/startups/${id}` : 'https://my-json-server.typicode.com/Melo034/startups/startups';
+        const url = id ? `https://my-json-server.typicode.com/Melo034/startup/startups/${id}` : 'https://my-json-server.typicode.com/Melo034/startup/startups';
         const method = id ? 'PUT' : 'POST';
 
         fetch(url, {

@@ -10,7 +10,7 @@ const StartupsList = () => {
     const showMore = () => setVisibleCount(startups.length);
 
     useEffect(() => {
-        fetch('https://my-json-server.typicode.com/Melo034/startups/startups') // Update URL if using my-json-server
+        fetch('https://my-json-server.typicode.com/Melo034/startup/startups') // Update URL if using my-json-server
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch startups');
                 return response.json();

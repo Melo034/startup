@@ -12,8 +12,8 @@ const StartUpProfile = () => {
 
     useEffect(() => {
         Promise.all([
-            fetch(`https://my-json-server.typicode.com/Melo034/startups/startups/${id}`),
-            fetch(`https://my-json-server.typicode.com/Melo034/startups/reviews?startupId=${id}`)
+            fetch(`https://my-json-server.typicode.com/Melo034/startup/startups/${id}`),
+            fetch(`https://my-json-server.typicode.com/Melo034/startup/reviews?startupId=${id}`)
         ])
             .then(([startupRes, reviewsRes]) => {
                 if (!startupRes.ok || !reviewsRes.ok) throw new Error('Failed to fetch data');
