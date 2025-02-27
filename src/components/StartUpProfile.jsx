@@ -63,17 +63,6 @@ const StartUpProfile = () => {
                         </Link>
                     </div>
                 </div>
-                <div className="flex-none mt-14 md:mt-0 md:max-w-xl">
-                    <img
-                        src={
-                            startup.image
-                                ? `https://my-json-server.typicode.com/Melo034/startups/images/${startup.image}`
-                                : "https://my-json-server.typicode.com/Melo034/startups/placeholder.jpg"
-                        }
-                        className=" md:rounded-tl-[108px] md:rounded-br-[108px]"
-                        alt={startup.name}
-                    />
-                </div>
             </div>
             {/*hero section*/}
             <div className="max-w-screen-xl mx-auto px-4 text-gray-600 md:px-8 flex justify-between py-28">

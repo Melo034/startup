@@ -45,16 +45,6 @@ const StartupsList = () => {
                         key={startup.id}
                     >
                         <div>
-                            <img
-                                src={
-                                    startup.image
-                                        ? `https://my-json-server.typicode.com/Melo034/startups/images/${startup.image}`
-                                        : "https://my-json-server.typicode.com/Melo034/startups/images/placeholder.jpg"
-                                }
-                                loading="lazy"
-                                alt={startup.name}
-                                className="w-full h-48 object-cover rounded-t-md"
-                            />
                             <div className="p-4">
                                 <h2 className="text-lg font-semibold text-[#DA1212]">{startup.name}</h2>
                                 <p className="text-neutral-300 text-sm mt-3">{startup.description}</p>
