@@ -12,8 +12,8 @@ const StartUpProfile = () => {
 
     useEffect(() => {
         Promise.all([
-            fetch(`http://localhost:3000/startups/${id}`),
-            fetch(`http://localhost:3000/reviews?startupId=${id}`)
+            fetch(`https://my-json-server.typicode.com/Melo034/startups/startups/${id}`),
+            fetch(`https://my-json-server.typicode.com/Melo034/startups/reviews?startupId=${id}`)
         ])
             .then(([startupRes, reviewsRes]) => {
                 if (!startupRes.ok || !reviewsRes.ok) throw new Error('Failed to fetch data');
@@ -67,8 +67,8 @@ const StartUpProfile = () => {
                     <img
                         src={
                             startup.image
-                                ? `http://localhost:3000/images/${startup.image}`
-                                : "http://localhost:3000/images/placeholder.jpg"
+                                ? `https://my-json-server.typicode.com/Melo034/startups/images/${startup.image}`
+                                : "https://my-json-server.typicode.com/Melo034/startups/placeholder.jpg"
                         }
                         className=" md:rounded-tl-[108px] md:rounded-br-[108px]"
                         alt={startup.name}

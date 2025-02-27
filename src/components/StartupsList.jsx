@@ -10,7 +10,7 @@ const StartupsList = () => {
     const showMore = () => setVisibleCount(startups.length);
 
     useEffect(() => {
-        fetch('http://localhost:3000/startups') // Update URL if using my-json-server
+        fetch('https://my-json-server.typicode.com/Melo034/startups/startups') // Update URL if using my-json-server
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch startups');
                 return response.json();
@@ -48,8 +48,8 @@ const StartupsList = () => {
                             <img
                                 src={
                                     startup.image
-                                        ? `http://localhost:3000/images/${startup.image}`
-                                        : "http://localhost:3000/images/placeholder.jpg"
+                                        ? `https://my-json-server.typicode.com/Melo034/startups/images/${startup.image}`
+                                        : "https://my-json-server.typicode.com/Melo034/startups/images/placeholder.jpg"
                                 }
                                 loading="lazy"
                                 alt={startup.name}

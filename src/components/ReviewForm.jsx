@@ -15,7 +15,7 @@ const ReviewForm = ({ startupId, setReviews }) => {
         }
 
         const review = { startupId, reviewerName, rating, comment };
-        fetch('http://localhost:3000/reviews', {
+        fetch('https://my-json-server.typicode.com/Melo034/startups/reviews', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(review),
