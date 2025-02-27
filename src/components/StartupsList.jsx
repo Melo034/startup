@@ -41,22 +41,21 @@ const StartupsList = () => {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {startups.slice(0, visibleCount).map((startup) => (
                     <div
-                        className="max-w-screen-xl mx-auto mt-4 shadow-lg border rounded-md duration-300 hover:shadow-sm border-neutral-800 bg-gradient-to-bl from-neutral-800 via-neutral-900 to-neutral-950"
+                        className="max-w-screen-xl mx-auto mt-4 shadow-lg border rounded-md duration-300 hover:shadow-sm border-neutral-800 bg-gradient-to-bl from-neutral-800 via-neutral-900 to-neutral-950 
+            flex flex-col justify-between h-[300px] w-full"
                         key={startup.id}
                     >
-                        <div>
-                            <div className="p-4">
-                                <h2 className="text-lg font-semibold text-[#DA1212]">{startup.name}</h2>
-                                <p className="text-neutral-300 text-sm mt-3">{startup.description}</p>
-                                <div className="flex justify-center mt-4">
-                                    <Link
-                                        to={`/startups/${startup.id}`}
-                                        className="bg-[#DA1212] text-white px-4 py-2 rounded hover:bg-[#DA1212]"
-                                    >
-                                        View Details
-                                    </Link>
-                                </div>
-                            </div>
+                        <div className="p-4 flex-1">
+                            <h2 className="text-lg font-semibold text-[#DA1212] line-clamp-1">{startup.name}</h2>
+                            <p className="text-neutral-300 text-sm mt-3 line-clamp-3">{startup.description}</p>
+                        </div>
+                        <div className="flex justify-center p-4">
+                            <Link
+                                to={`/startups/${startup.id}`}
+                                className="bg-[#DA1212] text-white px-4 py-2 rounded hover:bg-[#DA1212]"
+                            >
+                                View Details
+                            </Link>
                         </div>
                     </div>
                 ))}

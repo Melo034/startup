@@ -12,7 +12,7 @@ const Hero = () => {
                             We help startups to grow and make money
                         </h2>
                         <p className="text-neutral-300">
-                            Sed ut perspiciatis unde omnis iste natus voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae.
+                            Discover and explore innovative startups in one place. Connect with emerging businesses and find the next big idea!
                         </p>
                     </div>
                     <div className="flex-none mt-14 md:mt-0 md:max-w-xl">
