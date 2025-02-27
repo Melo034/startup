@@ -46,7 +46,7 @@ const StartUpProfile = () => {
     return (
         <div className="bg-neutral-900 p-6 rounded-lg ">
             {/*hero section*/}
-            <div className="max-w-screen-xl mx-auto text-gray-600 gap-x-6 flex items-center justify-center min-h-screen overflow-hidden md:px-8">
+            <div className="max-w-screen-xl mx-auto text-gray-600 gap-x-6 flex items-center justify-center overflow-hidden md:px-8">
                 <div className="flex-none space-y-5 sm:max-w-lg md:px-0 lg:max-w-xl text-center md:text-left">
                     <h2 className="text-4xl text-neutral-200 font-extrabold md:text-5xl">
                         {startup.name}
