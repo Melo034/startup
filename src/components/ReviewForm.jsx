@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { db } from '../server/firebase';  
+import { collection, addDoc } from 'firebase/firestore';  
 
 const ReviewForm = ({ startupId, setReviews }) => {
     const [reviewerName, setReviewerName] = useState('');
@@ -7,7 +9,7 @@ const ReviewForm = ({ startupId, setReviews }) => {
     const [comment, setComment] = useState('');
     const [error, setError] = useState(null);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!reviewerName || !rating) {
             setError('Name and rating are required');
@@ -15,23 +17,18 @@ const ReviewForm = ({ startupId, setReviews }) => {
         }
 
         const review = { startupId, reviewerName, rating, comment };
-        fetch('https://my-json-server.typicode.com/Melo034/startup/reviews', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(review),
-        })
-            .then((response) => {
-                if (!response.ok) throw new Error('Failed to submit review');
-                return response.json();
-            })
-            .then((newReview) => {
-                setReviews((prev) => [...prev, newReview]);
-                setReviewerName('');
-                setRating(5);
-                setComment('');
-                setError(null);
-            })
-            .catch((error) => setError(error.message));
+
+        try {
+            // Add the review to the Firestore collection
+            const docRef = await addDoc(collection(db, 'reviews'), review);
+            setReviews((prev) => [...prev, { ...review, id: docRef.id }]);
+            setReviewerName('');
+            setRating(5);
+            setComment('');
+            setError(null);
+        } catch (error) {
+            setError('Failed to submit review: ' + error.message);
+        }
     };
 
     return (

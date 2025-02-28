@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { db, storage } from '../server/firebase';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 const AddEdit = () => {
     const { id } = useParams();
@@ -10,22 +14,30 @@ const AddEdit = () => {
         services: '',
         address: '',
         contact: { phone: '', email: '', website: '' },
+        social: { facebook: '', instagram: '' },
         operatingHours: '',
+        imageUrl: ''
     });
+    const [image, setImage] = useState(null);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         if (id) {
-            fetch(`https://my-json-server.typicode.com/Melo034/startup/startups/${id}`)
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch startup');
-                    return response.json();
-                })
-                .then(data => setFormData({
-                    ...data,
-                    services: data.services.join(', '),
-                }))
-                .catch(error => setError(error.message));
+            const fetchData = async () => {
+                try {
+                    const docRef = doc(db, 'startups', id);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        setFormData({ ...docSnap.data(), services: docSnap.data().services.join(', ') });
+                    } else {
+                        setError('Startup not found');
+                    }
+                } catch (error) {
+                    console.error("Error saving document:", error);
+                    setError("Error fetching startup data Please try again.");
+                }
+            };
+            fetchData();
         }
     }, [id]);
 
@@ -33,40 +45,53 @@ const AddEdit = () => {
         const { name, value } = e.target;
         if (name.startsWith('contact.')) {
             const key = name.split('.')[1];
-            setFormData(prev => ({
-                ...prev,
-                contact: { ...prev.contact, [key]: value },
-            }));
+            setFormData(prev => ({ ...prev, contact: { ...prev.contact, [key]: value } })); 
+        } else if (name.startsWith('social.')) {
+            const key = name.split('.')[1];
+            setFormData(prev => ({ ...prev, social: { ...prev.social, [key]: value } }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleImageChange = (e) => {
+        if (e.target.files[0]) {
+            setImage(e.target.files[0]);
+        }
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.name || !formData.contact.phone) {
             setError('Name and phone are required');
             return;
         }
 
-        const startup = {
-            ...formData,
-            services: formData.services.split(',').map(s => s.trim()),
-        };
-        const url = id ? `https://my-json-server.typicode.com/Melo034/startup/startups/${id}` : 'https://my-json-server.typicode.com/Melo034/startup/startups';
-        const method = id ? 'PUT' : 'POST';
+        let imageUrl = formData.imageUrl;
 
-        fetch(url, {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(startup),
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to save startup');
-                return response.json();
-            })
-            .then(() => navigate(id ? `/startups/${id}` : '/'))
-            .catch(error => setError(error.message));
+        try {
+            if (image) {
+                const imageRef = ref(storage, `images/${uuidv4()}-${image.name}`);
+                await uploadBytes(imageRef, image);
+                imageUrl = await getDownloadURL(imageRef);
+            }
+
+            const startupData = {
+                ...formData,
+                services: formData.services.split(',').map(s => s.trim()),
+                imageUrl,
+            };
+
+            if (id) {
+                await updateDoc(doc(db, 'startups', id), startupData);
+            } else {
+                await setDoc(doc(db, 'startups', uuidv4()), startupData);
+            }
+            navigate('/');
+        } catch (error) {
+            console.error("Error saving document:", error);
+            setError("Failed to save startup. Please try again.");
+        }
     };
 
     return (
@@ -174,6 +199,62 @@ const AddEdit = () => {
                                     </label>
                                 </div>
                                 <div className="relative">
+                                    <input
+                                        type="text"
+                                        id="hs-tac-input-facebook"
+                                        name="social.facebook"
+                                        value={formData.social?.facebook || ""}
+                                        onChange={handleChange}
+                                        className="peer p-4 block w-full bg-neutral-800 border-transparent rounded-lg text-sm text-white placeholder:text-transparent focus:outline-none focus:ring-0 focus:border-transparent disabled:opacity-50 disabled:pointer-events-none
+            focus:pt-6
+            focus:pb-2
+            [&:not(:placeholder-shown)]:pt-6
+            [&:not(:placeholder-shown)]:pb-2
+            autofill:pt-6
+            autofill:pb-2"
+                                        placeholder="facebook"
+                                    />
+                                    <label
+                                        htmlFor="hs-tac-input-facebook"
+                                        className="absolute top-0 start-0 p-4 h-full text-neutral-400 text-sm truncate pointer-events-none transition ease-in-out duration-100 border border-transparent peer-disabled:opacity-50 peer-disabled:pointer-events-none
+            peer-focus:text-xs
+            peer-focus:-translate-y-1.5
+            peer-focus:text-neutral-400
+            peer-[:not(:placeholder-shown)]:text-xs
+            peer-[:not(:placeholder-shown)]:-translate-y-1.5
+            peer-[:not(:placeholder-shown)]:text-neutral-400">
+                                        Facebook Link
+                                    </label>
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        id="hs-tac-input-instagram"
+                                        name="social.instagram"
+                                        value={formData.social?.instagram || ""}
+                                        onChange={handleChange}
+                                        className="peer p-4 block w-full bg-neutral-800 border-transparent rounded-lg text-sm text-white placeholder:text-transparent focus:outline-none focus:ring-0 focus:border-transparent disabled:opacity-50 disabled:pointer-events-none
+            focus:pt-6
+            focus:pb-2
+            [&:not(:placeholder-shown)]:pt-6
+            [&:not(:placeholder-shown)]:pb-2
+            autofill:pt-6
+            autofill:pb-2"
+                                        placeholder="instagram"
+                                    />
+                                    <label
+                                        htmlFor="hs-tac-input-instagram"
+                                        className="absolute top-0 start-0 p-4 h-full text-neutral-400 text-sm truncate pointer-events-none transition ease-in-out duration-100 border border-transparent peer-disabled:opacity-50 peer-disabled:pointer-events-none
+            peer-focus:text-xs
+            peer-focus:-translate-y-1.5
+            peer-focus:text-neutral-400
+            peer-[:not(:placeholder-shown)]:text-xs
+            peer-[:not(:placeholder-shown)]:-translate-y-1.5
+            peer-[:not(:placeholder-shown)]:text-neutral-400">
+                                        Instagram Link
+                                    </label>
+                                </div>
+                                <div className="relative">
                                     <input type="text" id="hs-tac-input-operatingHours" name="operatingHours" value={formData.operatingHours} onChange={handleChange} className="peer p-4 block w-full bg-neutral-800 border-transparent rounded-lg text-sm text-white placeholder:text-transparent focus:outline-none focus:ring-0 focus:border-transparent disabled:opacity-50 disabled:pointer-events-none
       focus:pt-6
       focus:pb-2
@@ -223,6 +304,23 @@ const AddEdit = () => {
         peer-[:not(:placeholder-shown)]:-translate-y-1.5
         peer-[:not(:placeholder-shown)]:text-neutral-400">Description</label>
                                 </div>
+                                <div className="relative">
+                                    <input type="file" name="image" onChange={handleImageChange} id="hs-tac-input-phone" className="peer p-4 block w-full bg-neutral-800 border-transparent rounded-lg text-sm text-white placeholder:text-transparent focus:outline-none focus:ring-0 focus:border-transparent disabled:opacity-50 disabled:pointer-events-none
+      focus:pt-6
+      focus:pb-2
+      [&:not(:placeholder-shown)]:pt-6
+      [&:not(:placeholder-shown)]:pb-2
+      autofill:pt-6
+      autofill:pb-2" placeholder="image" />
+                                    <label htmlFor="hs-tac-input-image" className="absolute top-0 start-0 p-4 h-full text-neutral-400 text-sm truncate pointer-events-none transition ease-in-out duration-100 border border-transparent peer-disabled:opacity-50 peer-disabled:pointer-events-none
+        peer-focus:text-xs
+        peer-focus:-translate-y-1.5
+        peer-focus:text-neutral-400
+        peer-[:not(:placeholder-shown)]:text-xs
+        peer-[:not(:placeholder-shown)]:-translate-y-1.5
+        peer-[:not(:placeholder-shown)]:text-neutral-400">Image</label>
+                                </div>
+                                {formData.imageUrl && <img src={formData.imageUrl} alt="Uploaded" width="100" />}
                             </div>
 
 

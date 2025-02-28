@@ -18,7 +18,7 @@ const Hero = () => {
                     <div className="flex-none mt-14 md:mt-0 md:max-w-xl">
                         <img
                             src={hero}
-                            className=" md:rounded-tl-[108px] md:rounded-br-[108px]"
+                            className="rounded-tl-[108px] rounded-br-[108px]"
                             alt=""
                         />
                     </div>

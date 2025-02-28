@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { FaStar } from 'react-icons/fa';
 import ReviewForm from './ReviewForm';
+import facebook from "../assets/icons8-facebook-48.png"
+import instagram from "../assets/icons8-instagram-48.png"
+import { db, collection, getDoc, doc, query, where, getDocs } from '../server/firebase';
 
 const StartUpProfile = () => {
     const { id } = useParams();
@@ -11,26 +14,42 @@ const StartUpProfile = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        Promise.all([
-            fetch(`https://my-json-server.typicode.com/Melo034/startup/startups/${id}`),
-            fetch(`https://my-json-server.typicode.com/Melo034/startup/reviews?startupId=${id}`)
-        ])
-            .then(([startupRes, reviewsRes]) => {
-                if (!startupRes.ok || !reviewsRes.ok) throw new Error('Failed to fetch data');
-                return Promise.all([startupRes.json(), reviewsRes.json()]);
-            })
-            .then(([startupData, reviewsData]) => {
-                setStartup(startupData);
+        // Fetch startup details
+        const fetchStartupData = async () => {
+            try {
+                const startupDocRef = doc(db, 'startups', id);
+                const startupDocSnap = await getDoc(startupDocRef);
+                if (startupDocSnap.exists()) {
+                    setStartup(startupDocSnap.data());
+                } else {
+                    setError('Startup not found');
+                }
+            } catch (err) {
+                setError('Failed to fetch startup data');
+                throw err
+            }
+        };
+
+        // Fetch reviews
+        const fetchReviewsData = async () => {
+            try {
+                const reviewsQuery = query(collection(db, 'reviews'), where('startupId', '==', id));
+                const querySnapshot = await getDocs(reviewsQuery);
+                const reviewsData = querySnapshot.docs.map(doc => doc.data());
                 setReviews(reviewsData);
-                setLoading(false);
-            })
-            .catch(error => {
-                setError(error.message);
-                setLoading(false);
-            });
+            } catch (err) {
+                setError('Failed to fetch reviews');
+                throw err
+            }
+        };
+
+        // Call both fetch functions
+        fetchStartupData();
+        fetchReviewsData();
+        setLoading(false);
     }, [id]);
 
-    const [currentTestimonial, setCurrentTestimonial] = useState(null)
+    const [currentTestimonial, setCurrentTestimonial] = useState(null);
 
     useEffect(() => {
         if (reviews.length > 0) {
@@ -46,8 +65,8 @@ const StartUpProfile = () => {
     return (
         <div className="bg-neutral-900 p-6 rounded-lg ">
             {/*hero section*/}
-            <div className="max-w-screen-xl mx-auto text-gray-600 gap-x-6 flex items-center justify-center overflow-hidden md:px-8">
-                <div className="flex-none space-y-5 sm:max-w-lg md:px-0 lg:max-w-xl text-center md:text-left">
+            <div className="max-w-screen-xl mx-auto text-gray-600 gap-x-12 items-center justify-between overflow-hidden md:flex md:px-8">
+                <div className="flex-none space-y-5 px-4 sm:max-w-lg md:px-0 lg:max-w-xl">
                     <h2 className="text-4xl text-neutral-200 font-extrabold md:text-5xl">
                         {startup.name}
                     </h2>
@@ -62,6 +81,14 @@ const StartUpProfile = () => {
                             Edit Startup
                         </Link>
                     </div>
+                </div>
+                <div className="flex-none mt-14 md:mt-0 md:max-w-xl">
+                    <img
+                        src={startup.imageUrl ? `/images/${startup.imageUrl}` : '/images/placeholder.jpg'}
+                        loading="lazy"
+                        alt={startup.name}
+                        className="rounded-tl-[108px] rounded-br-[108px]"
+                    />
                 </div>
             </div>
             {/*hero section*/}
@@ -129,6 +156,28 @@ const StartUpProfile = () => {
                             <Link className="mt-1 text-sm text-neutral-400" to="">
                                 {startup.contact.website}
                             </Link>
+                        </div>
+                    </div>
+                    <div className="my-6 lg:mt-10">
+                        <div className="flex justify-center md:justify-start">
+                            <button type="button">
+                                <Link to={startup.social.facebook} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                                    <img src={facebook} alt="" className="w-10 h-10" />
+                                    <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-white group-hover:text-xs group-hover:-translate-y-6 duration-700">
+                                        Facebook
+                                    </span>
+                                </ Link>
+                            </button>
+
+                            <button type="button">
+
+                                <Link to={startup.social.instagram} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                                    <img src={instagram} alt="" className="w-10 h-10" />
+                                    <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-white group-hover:text-xs group-hover:-translate-y-6 duration-700">
+                                        Instagram
+                                    </span>
+                                </Link>
+                            </button>
                         </div>
                     </div>
                 </div>
