@@ -113,7 +113,7 @@ const StartUpProfile = () => {
                         </svg>
                         <div className="grow">
                             <h4 className="font-semibold text-white">address:</h4>
-                            <address className="mt-1 text-sm not-italic text-neutral-400">
+                            <address className="mt-1 text-xs sm:text-lg md:text-xl not-italic text-neutral-400">
                                 {startup.address}<br />
                                 Freetown.
                             </address>
@@ -127,7 +127,7 @@ const StartUpProfile = () => {
                         </svg>
                         <div className="grow">
                             <h4 className="font-semibold text-white">Email us:</h4>
-                            <Link className="mt-1 text-sm text-neutral-400" to="">
+                            <Link className="mt-1 text-xs sm:text-lg md:text-xl text-neutral-400" to="">
                                 {startup.contact.email}
                             </Link>
                         </div>
@@ -140,7 +140,7 @@ const StartUpProfile = () => {
                         </svg>
                         <div className="grow">
                             <h4 className="font-semibold text-white">Contact</h4>
-                            <Link className="mt-1 text-sm text-neutral-400" to="">
+                            <Link className="mt-1 text-xs sm:text-lg md:text-xl text-neutral-400" to="">
                                 {startup.contact.phone}
                             </Link>
                         </div>
@@ -154,7 +154,7 @@ const StartUpProfile = () => {
                         </svg>
                         <div className="grow">
                             <h4 className="font-semibold text-white">Website</h4>
-                            <Link className="mt-1 text-sm text-neutral-400" to="">
+                            <Link className="mt-1 text-xs sm:text-lg md:text-xl text-neutral-400" to="">
                                 {startup.contact.website}
                             </Link>
                         </div>
