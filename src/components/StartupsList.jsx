@@ -46,8 +46,7 @@ const StartupsList = () => {
             <div className="mt-12 grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {startups.slice(0, visibleCount).map((startup) => (
                     <div
-                        className="max-w-full mx-auto mt-4 shadow-lg border rounded-md duration-300 hover:shadow-sm border-neutral-800 bg-gradient-to-bl from-neutral-800 via-neutral-900 to-neutral-950 
-            flex flex-col justify-between h-[350px] w-full"
+                        className="max-w-full mx-auto mt-4 shadow-lg border rounded-md duration-300 hover:shadow-sm border-neutral-800 bg-gradient-to-bl from-neutral-800 via-neutral-900 to-neutral-950 flex flex-col justify-between"
                         key={startup.id}
                     >
                         {/* Image */}
@@ -65,7 +64,7 @@ const StartupsList = () => {
                         </div>
 
                         {/* Button */}
-                        <div className="flex justify-center p-4 mt-auto">
+                        <div className="flex justify-center p-4 mt-auto mb-4">
                             <Link
                                 to={`/startups/${startup.id}`}
                                 className="bg-[#DA1212] text-white px-6 py-2 rounded hover:bg-[#DA1212] transition-all duration-300"
