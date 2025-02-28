@@ -92,19 +92,19 @@ const StartUpProfile = () => {
                 </div>
             </div>
             {/*hero section*/}
-            <div className="max-w-screen-xl mx-auto px-4 text-gray-600 md:px-8 flex justify-between py-28">
+            <div className="max-w-screen-xl mx-auto px-4 text-gray-600 md:px-8 py-28 flex flex-col md:flex-row justify-between">
                 {/* Services Section */}
-                <div className="w-1/2">
+                <div className="w-full md:w-1/2 mb-10 md:mb-0">
                     <h2 className="text-xl font-semibold mt-4 text-center text-[#DA1212]">Services</h2>
                     <ul className="pl-5 mt-2 text-center">
                         {startup.services.map((service, index) => (
-                            <li key={index} className="text-neutral-300">{service}</li>
+                            <li key={index} className="text-neutral-300 text-xs sm:text-lg md:text-xl">{service}</li>
                         ))}
                     </ul>
                 </div>
 
                 {/* Contact Section */}
-                <div className="w-1/2 space-y-8">
+                <div className="w-full md:w-1/2 space-y-8">
                     <h2 className="text-xl font-semibold mt-4 text-[#DA1212]">Contact</h2>
                     <div className="flex gap-x-5">
                         <svg className="flex-shrink-0 size-6 text-[#DA1212]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -145,6 +145,7 @@ const StartUpProfile = () => {
                             </Link>
                         </div>
                     </div>
+
                     <div className="flex gap-x-5">
                         <svg className="flex-shrink-0 size-6 text-[#DA1212]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <circle cx="12" cy="12" r="10" />
@@ -161,17 +162,16 @@ const StartUpProfile = () => {
                     <div className="my-6 lg:mt-10">
                         <div className="flex justify-center md:justify-start">
                             <button type="button">
-                                <Link to={startup.social?.facebook || "#"} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                                <Link to={startup.social?.facebook || "#"} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800 text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
                                     <img src={facebook} alt="" className="w-10 h-10" />
                                     <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-white group-hover:text-xs group-hover:-translate-y-6 duration-700">
                                         Facebook
                                     </span>
-                                </ Link>
+                                </Link>
                             </button>
 
                             <button type="button">
-
-                                <Link to={startup.social?.instagram || "#"} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                                <Link to={startup.social?.instagram || "#"} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800 text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
                                     <img src={instagram} alt="" className="w-10 h-10" />
                                     <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-white group-hover:text-xs group-hover:-translate-y-6 duration-700">
                                         Instagram
