@@ -8,7 +8,16 @@ const StartupsList = () => {
     const [error, setError] = useState(null);
 
     const [visibleCount, setVisibleCount] = useState(9);
-    const showMore = () => setVisibleCount(startups.length);
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const toggleVisibility = () => {
+        if (isExpanded) {
+            setVisibleCount(9);
+        } else {
+            setVisibleCount(startups.length);
+        }
+        setIsExpanded(!isExpanded);
+    };
 
     useEffect(() => {
         const fetchStartups = async () => {
@@ -75,13 +84,13 @@ const StartupsList = () => {
                     </div>
                 ))}
             </div>
-            {visibleCount < startups.length && (
+            {startups.length > visibleCount && (
                 <div className="flex justify-center mt-6">
                     <button
-                        onClick={showMore}
+                        onClick={toggleVisibility}
                         className="bg-[#DA1212] text-white px-6 py-2 rounded hover:bg-[#DA1212]"
                     >
-                        Show More
+                        {isExpanded ? 'See Less' : 'Show More'}
                     </button>
                 </div>
             )}
