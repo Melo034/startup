@@ -161,7 +161,7 @@ const StartUpProfile = () => {
                     <div className="my-6 lg:mt-10">
                         <div className="flex justify-center md:justify-start">
                             <button type="button">
-                                <Link to={startup.social.facebook} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                                <Link to={startup.social?.facebook || "#"} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
                                     <img src={facebook} alt="" className="w-10 h-10" />
                                     <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-white group-hover:text-xs group-hover:-translate-y-6 duration-700">
                                         Facebook
@@ -171,7 +171,7 @@ const StartUpProfile = () => {
 
                             <button type="button">
 
-                                <Link to={startup.social.instagram} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                                <Link to={startup.social?.instagram || "#"} className="group flex justify-center rounded-md drop-shadow-xl from-gray-800  text-white font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
                                     <img src={instagram} alt="" className="w-10 h-10" />
                                     <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-white group-hover:text-xs group-hover:-translate-y-6 duration-700">
                                         Instagram

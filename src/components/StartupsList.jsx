@@ -52,7 +52,7 @@ const StartupsList = () => {
                     >
                         {/* Image */}
                         <img
-                            src={startup.imageUrl ? `/images/${startup.imageUrl}` : '/images/placeholder.jpg'}
+                            src={startup.imageUrl ? `${startup.imageUrl}` : '/images/placeholder.jpg'}
                             loading="lazy"
                             alt={startup.name}
                             className="w-full h-48 rounded-t-md object-cover"
