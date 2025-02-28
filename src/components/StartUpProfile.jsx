@@ -84,7 +84,7 @@ const StartUpProfile = () => {
                 </div>
                 <div className="flex-none mt-14 md:mt-0 md:max-w-xl">
                     <img
-                        src={startup.imageUrl ? `/images/${startup.imageUrl}` : '/images/placeholder.jpg'}
+                        src={startup.imageUrl ? `${startup.imageUrl}` : '/images/placeholder.jpg'}
                         loading="lazy"
                         alt={startup.name}
                         className="rounded-tl-[108px] rounded-br-[108px]"
