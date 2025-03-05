@@ -154,7 +154,7 @@ const StartUpProfile = () => {
                         </svg>
                         <div className="grow">
                             <h4 className="font-semibold text-white">Website</h4>
-                            <Link className="mt-1 text-xs sm:text-lg md:text-xl text-neutral-400" to="">
+                            <Link className="mt-1 text-xs sm:text-lg md:text-xl text-neutral-400" to={startup.contact.website}>
                                 {startup.contact.website}
                             </Link>
                         </div>
