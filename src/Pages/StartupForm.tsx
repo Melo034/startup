@@ -122,7 +122,7 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 pt-4">
+    <form onSubmit={handleSubmit} className="space-y-6 pt-4 max-h-[90vh] overflow-y-auto sm:max-w-2xl p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">Startup Name</Label>
@@ -170,7 +170,7 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
           required
         />
       </div>
-
+      <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2">
         <Label htmlFor="imageUpload">Startup Image</Label>
         <Input
@@ -190,6 +190,18 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
             />
           </div>
         )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="contactInfo.address">Address</Label>
+        <Input
+          id="contactInfo.address"
+          name="contactInfo.address"
+          value={formData.address}
+          onChange={handleChange}
+          required
+        />
+      </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -240,17 +252,6 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="contactInfo.address">Address</Label>
-        <Textarea
-          id="contactInfo.address"
-          name="contactInfo.address"
-          value={formData.address}
-          onChange={handleChange}
-          rows={2}
-          required
-        />
-      </div>
 
       <div className="space-y-2">
         <Label htmlFor="featured">Featured</Label>

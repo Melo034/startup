@@ -108,6 +108,21 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.637 0.237 25.331);
+
+
+  --font-pt-serif: 'PT Serif', serif;
+  --font-montserrat: 'Montserrat',  sans-serif;
+  --font-lexend-deca: 'Lexend Deca',  sans-serif;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-Lora: "Lora", serif;
+
+  --color-green-100: #7B6F47;
+  --color-green-200: #82896E;
+  --color-green-300: #3E3F22;
+  --color-green-400: #264025;
+  --color-brown-100: #DEC8B7;
+  --color-brown-200: #C89E7A;
+  --color-brown-300: #DDCBB7;
 }
 
 

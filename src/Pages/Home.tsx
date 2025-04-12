@@ -19,7 +19,7 @@ const Home = () => {
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl md:text-6xl/none">
-                  Discover Freetown&apos;s Innovative Startups
+                  Discover Sierra Leone&apos;s Innovative Startups
                 </h1>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
                   Your gateway to Sierra Leone&apos;s thriving startup ecosystem. Find, connect, and collaborate with
@@ -63,7 +63,7 @@ const Home = () => {
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Featured Startups</h2>
                 <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-                  Explore some of the most innovative startups in Freetown
+                  Explore some of the most innovative startups in Sierra Leone
                 </p>
               </div>
             </div>
@@ -96,7 +96,7 @@ const Home = () => {
               <div className="space-y-4">
                 <div className="inline-block rounded-lg bg-red-100 px-3 py-1 text-sm">Join the Community</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
-                  Are you a startup in Freetown?
+                  Are you a startup in Sierra Leone?
                 </h2>
                 <p className="text-muted-foreground md:text-xl">
                   Get listed in our directory to increase your visibility and connect with potential customers,

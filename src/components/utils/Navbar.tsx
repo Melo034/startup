@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 
 const menuItems = [
     { name: 'Startups', href: '/startups' },
-    { name: 'About', href: '#link' },
+    { name: 'About', href: '/about' },
 ]
 
 export const Navbar = () => {
