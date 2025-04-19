@@ -24,33 +24,32 @@ interface StartupFormProps {
 }
 
 export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
-  const [formData, setFormData] = useState<Startup>(
-    startup || {
-      name: "",
-      description: "",
-      category: "",
-      rating: 0,
-      featured: false,
-      foundedYear: new Date().getFullYear(),
-      address: "",
-      imageUrl: "",
-      contact: {
-        phone: "",
-        email: "",
-        website: "",
-      },
-      operatingHours: {
-        Monday: "9:00 AM - 5:00 PM",
-        Tuesday: "9:00 AM - 5:00 PM",
-        Wednesday: "9:00 AM - 5:00 PM",
-        Thursday: "9:00 AM - 5:00 PM",
-        Friday: "9:00 AM - 5:00 PM",
-        Saturday: "Closed",
-        Sunday: "Closed",
-      },
-      reviews: [],
-    }
-  );
+  const [formData, setFormData] = useState<Startup>({
+    name: startup?.name || "",
+    description: startup?.description || "",
+    category: startup?.category || "",
+    rating: startup?.rating || 0,
+    featured: startup?.featured || false,
+    foundedYear: startup?.foundedYear || new Date().getFullYear(),
+    address: startup?.address || "",
+    imageUrl: startup?.imageUrl || "",
+    contact: {
+      phone: startup?.contact?.phone || "",
+      email: startup?.contact?.email || "",
+      website: startup?.contact?.website || "",
+    },
+    operatingHours: {
+      Monday: startup?.operatingHours?.Monday || "9:00 AM - 5:00 PM",
+      Tuesday: startup?.operatingHours?.Tuesday || "9:00 AM - 5:00 PM",
+      Wednesday: startup?.operatingHours?.Wednesday || "9:00 AM - 5:00 PM",
+      Thursday: startup?.operatingHours?.Thursday || "9:00 AM - 5:00 PM",
+      Friday: startup?.operatingHours?.Friday || "9:00 AM - 5:00 PM",
+      Saturday: startup?.operatingHours?.Saturday || "Closed",
+      Sunday: startup?.operatingHours?.Sunday || "Closed",
+    },
+    reviews: startup?.reviews || [],
+  });
+  
 
   const [uploading, setUploading] = useState(false);
 
