@@ -153,6 +153,7 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
               <SelectItem value="Logistics">Logistics</SelectItem>
               <SelectItem value="Telecommunications">Telecommunications</SelectItem>
               <SelectItem value="Energy">Energy</SelectItem>
+              <SelectItem value="Health">Health</SelectItem>
             </SelectContent>
           </Select>
         </div>

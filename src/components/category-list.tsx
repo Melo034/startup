@@ -9,6 +9,7 @@ import {
   Utensils,
   Wifi,
   Zap,
+  HeartPulse,
 } from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../server/firebase";
@@ -22,6 +23,7 @@ const categoryMapping: { [key: string]: { label: string; slug: string } } = {
   Logistics: { label: "Logistics", slug: "logistics" },
   Telecommunications: { label: "Telecommunications", slug: "telecom" },
   Energy: { label: "Energy", slug: "energy" },
+  Health: { label: "Health", slug: "health" },
 };
 
 const categoryIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
@@ -33,6 +35,7 @@ const categoryIcons: { [key: string]: React.ComponentType<{ className?: string }
   Logistics: Truck,
   Telecommunications: Wifi,
   Energy: Zap,
+  Health: HeartPulse,
 };
 
 interface Category {

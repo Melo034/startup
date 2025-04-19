@@ -17,6 +17,7 @@ const categoryMapping: { [key: string]: { label: string; slug: string } } = {
   Logistics: { label: "Logistics", slug: "logistics" },
   Telecommunications: { label: "Telecommunications", slug: "telecom" },
   Energy: { label: "Energy", slug: "energy" },
+  Health: { label: "Health", slug: "health" },
 };
 
 const slugToCategory: { [key: string]: string } = Object.keys(categoryMapping).reduce(
