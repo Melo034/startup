@@ -93,8 +93,8 @@ const EditStartUp = () => {
     return (
       <div>
         <Navbar />
-        <main className="flex-1 py-32">
-          <div className="container max-w-5xl mx-auto px-4 md:px-6">
+        <main className="py-32">
+          <div className="container max-w-7xl mx-auto px-4 md:px-6">
             <h1 className="text-3xl font-bold mb-4">Edit Startup</h1>
             <StartupForm startup={startup} onSave={handleSave} onCancel={handleCancel} />
           </div>
