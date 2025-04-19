@@ -121,7 +121,7 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 pt-4 max-h-[90vh] overflow-y-auto sm:max-w-2xl p-6">
+    <form onSubmit={handleSubmit} className="space-y-6 pt-4 sm:max-w-2xl p-6">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">Startup Name</Label>
