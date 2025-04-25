@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Edit, Plus, Trash2} from "lucide-react";
+import { Edit, Plus} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -24,7 +23,6 @@ import {
   collection,
   getDocs,
   addDoc,
-  deleteDoc,
   doc,
   setDoc,
 } from "firebase/firestore";
@@ -39,8 +37,6 @@ import Loading from "@/components/utils/Loading";
 const AddStartUp = () => {
   const [startups, setStartups] = useState<Startup[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
-  const [currentStartup, setCurrentStartup] = useState<Startup | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -62,23 +58,6 @@ const AddStartUp = () => {
 
     fetchStartups();
   }, []);
-
-  const handleDelete = async (id: string | undefined) => {
-    if (!id) return;
-    try {
-      await deleteDoc(doc(db, "startups", id));
-      setStartups((prev) => prev.filter((startup) => startup.id !== id));
-      setIsDeleteDialogOpen(false);
-      toast.success("Startup deleted", {
-        description: "The startup has been removed from the directory.",
-      });
-    } catch (error) {
-      console.error("Error deleting startup:", error);
-      toast.error("Error", {
-        description: "Failed to delete startup. Please try again.",
-      });
-    }
-  };
 
   const handleSave = async (startup: Startup, isNew: boolean) => {
     try {
@@ -170,7 +149,7 @@ const AddStartUp = () => {
                     <TableHead>Rating</TableHead>
                     <TableHead>Address</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -200,50 +179,6 @@ const AddStartUp = () => {
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Dialog
-                              open={isDeleteDialogOpen && currentStartup?.id === startup.id}
-                              onOpenChange={(open) => {
-                                setIsDeleteDialogOpen(open);
-                                if (open) setCurrentStartup(startup);
-                              }}
-                            >
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  className="text-red-500"
-                                  onClick={() => setCurrentStartup(startup)}
-                                  aria-label={`Delete ${startup.name}`}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Confirm Deletion</DialogTitle>
-                                  <DialogDescription>
-                                    Are you sure you want to delete {currentStartup?.name}?
-                                    This action cannot be undone.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter>
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => setIsDeleteDialogOpen(false)}
-                                    aria-label="Cancel deletion"
-                                  >
-                                    Cancel
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    onClick={() => handleDelete(currentStartup?.id)}
-                                    aria-label={`Confirm delete ${currentStartup?.name}`}
-                                  >
-                                    Delete
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
                           </div>
                         </TableCell>
                       </TableRow>
