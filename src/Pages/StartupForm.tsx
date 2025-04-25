@@ -48,8 +48,13 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
       Sunday: startup?.operatingHours?.Sunday || "Closed",
     },
     reviews: startup?.reviews || [],
+    social: {
+      facebook: startup?.social?.facebook || "",
+      instagram: startup?.social?.instagram || "",
+    },
+    services: startup?.services || [],
   });
-  
+
 
   const [uploading, setUploading] = useState(false);
 
@@ -70,7 +75,7 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
         ...prev,
         [parent]: {
           ...(typeof prev[parent as keyof Startup] === "object" &&
-          prev[parent as keyof Startup] !== null
+            prev[parent as keyof Startup] !== null
             ? (prev[parent as keyof Startup] as unknown as Record<string, unknown>)
             : {}),
           [child]: value,
@@ -145,15 +150,23 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Tech">Tech</SelectItem>
+              <SelectItem value="Technology">Tech</SelectItem>
               <SelectItem value="Fintech">Fintech</SelectItem>
-              <SelectItem value="Agriculture">Agriculture</SelectItem>
+              <SelectItem value="Agritech">Agritech</SelectItem>
               <SelectItem value="E-commerce">E-commerce</SelectItem>
-              <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
-              <SelectItem value="Logistics">Logistics</SelectItem>
-              <SelectItem value="Telecommunications">Telecommunications</SelectItem>
+              <SelectItem value="Edutech">Edutech</SelectItem>
+              <SelectItem value="Entertainment">Entertainment</SelectItem>
               <SelectItem value="Energy">Energy</SelectItem>
-              <SelectItem value="Health">Health</SelectItem>
+              <SelectItem value="Healthtech">Healthtech</SelectItem>
+              <SelectItem value="SaaS">SaaS</SelectItem>
+              <SelectItem value="AI">AI & ML</SelectItem>
+              <SelectItem value="Blockchain">Blockchain</SelectItem>
+              <SelectItem value="Cloud">Cloud</SelectItem>
+              <SelectItem value="SocialImpact">Social Impact</SelectItem>
+              <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+              <SelectItem value="BioTech">Biotech</SelectItem>
+              <SelectItem value="Media">Media</SelectItem>
+              <SelectItem value="Mobility">Mobility</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -171,37 +184,37 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-      <div className="space-y-2">
-        <Label htmlFor="imageUpload">Startup Image</Label>
-        <Input
-          id="imageUpload"
-          name="imageUpload"
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-        />
-        {uploading && <p>Uploading...</p>}
-        {formData.imageUrl && (
-          <div className="mt-2">
-            <img
-              src={formData.imageUrl}
-              alt="Startup"
-              className="h-32 w-auto rounded"
-            />
-          </div>
-        )}
-      </div>
-      
-      <div className="space-y-2">
-        <Label htmlFor="contactInfo.address">Address</Label>
-        <Input
-          id="contactInfo.address"
-          name="contactInfo.address"
-          value={formData.address}
-          onChange={handleChange}
-          required
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="imageUpload">Startup Image</Label>
+          <Input
+            id="imageUpload"
+            name="imageUpload"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+          />
+          {uploading && <p>Uploading...</p>}
+          {formData.imageUrl && (
+            <div className="mt-2">
+              <img
+                src={formData.imageUrl}
+                alt="Startup"
+                className="h-32 w-auto rounded"
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="contactInfo.address">Address</Label>
+          <Input
+            id="contactInfo.address"
+            name="contactInfo.address"
+            value={formData.address}
+            onChange={handleChange}
+            required
+          />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -222,6 +235,29 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
             name="contactInfo.email"
             type="email"
             value={formData.contact.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="socialInfo.facebook">Facebook Url</Label>
+          <Input
+            id="socialInfo.facebook"
+            name="socialInfo.facebook"
+            value={formData.social.facebook}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="socialInfo.instagram">Instagram Url</Label>
+          <Input
+            id="socialInfo.instagram"
+            name="socialInfo.instagram"
+            type="text"
+            value={formData.social.instagram}
             onChange={handleChange}
             required
           />
@@ -252,14 +288,26 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
         </div>
       </div>
 
-
-      <div className="space-y-2">
-        <Label htmlFor="featured">Featured</Label>
-        <Checkbox
-          id="featured"
-          checked={formData.featured}
-          onCheckedChange={handleCheckboxChange}
-        />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="featured">Featured</Label>
+          <Checkbox
+            id="featured"
+            checked={formData.featured}
+            onCheckedChange={handleCheckboxChange}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="services">Services</Label>
+          <Input
+            id="services"
+            name="services"
+            type="text"
+            value={formData.services.join(", ")}
+            onChange={handleChange}
+            required
+          />
+        </div>
       </div>
 
       <div className="space-y-4">

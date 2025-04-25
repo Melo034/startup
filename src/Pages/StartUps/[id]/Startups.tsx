@@ -10,6 +10,8 @@ import { db } from "../../../server/firebase";
 import type { Startup } from "@/types";
 import { Navbar } from "@/components/utils/Navbar";
 import { Footer } from "@/components/utils/Footer";
+import facebook from "../../../assets/icons8-facebook-48.png";
+import instagram from "../../../assets/icons8-instagram-48.png";
 
 const Startups = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,8 +32,8 @@ const Startups = () => {
             typeof data.rating === "number"
               ? data.rating
               : reviews.length > 0
-              ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length
-              : 0;
+                ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length
+                : 0;
           setStartup({
             id: docSnap.id,
             name: data.name || "",
@@ -42,6 +44,11 @@ const Startups = () => {
             foundedYear: data.foundedYear || new Date().getFullYear(),
             address: data.address || "",
             imageUrl: data.imageUrl || "",
+            services: data.services || [],
+            social: {
+              facebook: data.social?.facebook || "",
+              instagram: data.social?.instagram || "",
+            },
             contact: {
               phone: data.contact?.phone || "",
               email: data.contact?.email || "",
@@ -115,9 +122,8 @@ const Startups = () => {
                     .map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-5 h-5 ${
-                          i < Math.floor(startup.rating) ? "fill-current" : "stroke-current fill-none"
-                        }`}
+                        className={`w-5 h-5 ${i < Math.floor(startup.rating) ? "fill-current" : "stroke-current fill-none"
+                          }`}
                       />
                     ))}
                   <span className="ml-2 text-foreground font-medium">
@@ -165,9 +171,8 @@ const Startups = () => {
                               .map((_, i) => (
                                 <Star
                                   key={i}
-                                  className={`w-4 h-4 ${
-                                    i < review.rating ? "fill-current" : "stroke-current fill-none"
-                                  }`}
+                                  className={`w-4 h-4 ${i < review.rating ? "fill-current" : "stroke-current fill-none"
+                                    }`}
                                 />
                               ))}
                           </div>
@@ -237,6 +242,16 @@ const Startups = () => {
                 </div>
               </div>
               <div className="border rounded-lg p-4">
+                <h2 className="text-xl font-bold mb-4">Services</h2>
+                <div className="space-y-2">
+                  {startup.services.map((service, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div className="font-medium">{service}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="border rounded-lg p-4">
                 <h2 className="text-xl font-bold mb-4">Operating Hours</h2>
                 <div className="space-y-2">
                   {Object.entries(startup.operatingHours).map(([day, hours]) => (
@@ -255,6 +270,30 @@ const Startups = () => {
                 <div className="flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-muted-foreground" />
                   <div className="text-sm text-muted-foreground">{startup.foundedYear}</div>
+                </div>
+              </div>
+              <div className="border rounded-lg p-4">
+                <h2 className="text-xl font-bold mb-4">Socials</h2>
+                <div className="space-y-2">
+                  <div className="flex justify-center md:justify-start">
+                    <button type="button">
+                      <Link to={startup.social?.facebook || "#"} className="group flex justify-center rounded-md drop-shadow-xl font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                        <img src={facebook} alt="" className="w-10 h-10" />
+                        <span className="absolute opacity-0 group-hover:opacity-100  group-hover:text-xs group-hover:-translate-y-6 duration-700">
+                          Facebook
+                        </span>
+                      </Link>
+                    </button>
+
+                    <button type="button">
+                      <Link to={startup.social?.instagram || "#"} className="group flex justify-center rounded-md drop-shadow-xl  font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                        <img src={instagram} alt="" className="w-10 h-10" />
+                        <span className="absolute opacity-0 group-hover:opacity-100  group-hover:text-xs group-hover:-translate-y-6 duration-700">
+                          Instagram
+                        </span>
+                      </Link>
+                    </button>
+                  </div>
                 </div>
               </div>
               <Button className="w-full" asChild>

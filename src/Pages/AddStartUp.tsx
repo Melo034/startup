@@ -20,7 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import {
   collection,
   getDocs,
@@ -80,6 +80,11 @@ const AddStartUp = () => {
                 Sunday: data.operatingHours?.Sunday || "Closed",
               },
               reviews,
+              social: {
+                facebook: data.social?.facebook || "",
+                instagram: data.social?.instagram || "",
+              },
+              services: Array.isArray(data.services) ? data.services : [],
             };
         });
         setStartups(startupsList);
@@ -243,6 +248,7 @@ const AddStartUp = () => {
         </div>
       </main>
       <Footer />
+      <Toaster richColors position="top-center" closeButton={false} />
     </div>
   );
 };

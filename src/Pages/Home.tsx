@@ -48,8 +48,8 @@ const Home = () => {
                     Fintech
                   </Link>
                   ,{" "}
-                  <Link to="/startups?category=agriculture" className="underline">
-                    Agriculture
+                  <Link to="/startups?category=agritech" className="underline">
+                    Agritech
                   </Link>
                 </p>
               </div>

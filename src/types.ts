@@ -3,6 +3,11 @@ export interface ContactInfo {
     email: string;
     website: string;
   }
+
+  export interface SocialInfo {
+    facebook: string;
+    instagram: string;
+  }
   
   export interface OperatingHours {
     Monday: string;
@@ -30,7 +35,9 @@ export interface ContactInfo {
     rating: number;
     featured: boolean;
     foundedYear: number;
+    social: SocialInfo;
     imageUrl?: string;
+    services: string[];
     contact: ContactInfo;
     address: string;
     operatingHours: OperatingHours;

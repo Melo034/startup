@@ -18,7 +18,6 @@ export function FeaturedStartups() {
         const querySnapshot = await getDocs(q);
         const startupsList = querySnapshot.docs.map((doc) => {
           const data = doc.data();
-          console.log("Fetched featured startup:", data); // Debug log
           const reviews = Array.isArray(data.reviews) ? data.reviews : [];
           const rating =
             typeof data.rating === "number"
@@ -51,6 +50,8 @@ export function FeaturedStartups() {
               Sunday: data.operatingHours?.Sunday || "Closed",
             },
             reviews,
+            social: data.social || { facebook: "", instagram: "" },
+            services: data.services || [],
           };
         });
         setFeaturedStartups(startupsList);
