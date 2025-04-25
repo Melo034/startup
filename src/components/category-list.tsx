@@ -1,63 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  Code,
-  DollarSign,
-  Cpu,
-  ShoppingBag,
-  BookOpen,
-  Film,
-  Zap,
-  HeartPulse,
-  Cloud,
-  Globe,
-  Users,
-  Shield,
-  Activity,
-  Server,
-} from "lucide-react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../server/firebase";
-
-const categoryMapping: { [key: string]: { label: string; slug: string } } = {
-  Technology:     { label: "Tech",           slug: "tech" },
-  Fintech:        { label: "Fintech",        slug: "fintech" },
-  Agritech:       { label: "Agritech",       slug: "agritech" },
-  "E-commerce":   { label: "E-commerce",     slug: "ecommerce" },
-  Edutech:        { label: "Edutech",        slug: "edutech" },
-  Entertainment:  { label: "Entertainment",  slug: "entertainment" },
-  Energy:         { label: "Energy",         slug: "energy" },
-  Healthtech:     { label: "Healthtech",     slug: "healthtech" },
-  SaaS:           { label: "SaaS",           slug: "saas" },
-  AI:             { label: "AI & ML",        slug: "ai-ml" },
-  Blockchain:     { label: "Blockchain",     slug: "blockchain" },
-  Cloud:          { label: "Cloud",          slug: "cloud" },
-  SocialImpact:   { label: "Social Impact",  slug: "social-impact" },
-  Cybersecurity:  { label: "Cybersecurity",  slug: "cybersecurity" },
-  BioTech:        { label: "Biotech",        slug: "biotech" },
-  Media:          { label: "Media",          slug: "media" },
-  Mobility:       { label: "Mobility",       slug: "mobility" },
-};
-
-const categoryIcons: { [key: string]: React.ComponentType<{ className?: string }> } = {
-  Technology:     Code,
-  Fintech:        DollarSign,
-  Agritech:       Cpu,            
-  "E-commerce":   ShoppingBag,
-  Edutech:        BookOpen,
-  Entertainment:  Film,
-  Energy:         Zap,
-  Healthtech:     HeartPulse,
-  SaaS:           Server,
-  AI:             Activity,
-  Blockchain:     Shield,
-  Cloud:          Cloud,
-  SocialImpact:   Users,
-  Cybersecurity:  Shield,
-  BioTech:        Activity,      
-  Media:          Film,
-  Mobility:       Globe,
-};
+import { categoryMapping, categoryIcons } from "../constants";
+import Loading from "./utils/Loading";
 
 interface Category {
   name: string;
@@ -68,15 +14,17 @@ interface Category {
 
 export function CategoryList() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        setLoading(true);
         const startupsCollection = collection(db, "startups");
         const querySnapshot = await getDocs(startupsCollection);
         const categoryCounts: { [key: string]: number } = {};
 
-        querySnapshot.docs.forEach((doc) => {
+        querySnapshot.forEach((doc) => {
           const data = doc.data();
           const category = data.category || "Uncategorized";
           categoryCounts[category] = (categoryCounts[category] || 0) + 1;
@@ -85,21 +33,29 @@ export function CategoryList() {
         const categoryList: Category[] = Object.keys(categoryCounts).map((name) => ({
           name,
           count: categoryCounts[name],
-          slug:
-            categoryMapping[name]?.slug ||
-            name.toLowerCase().replace(/\s+/g, "-"),
-          icon: categoryIcons[name] || Code,
+          slug: categoryMapping[name]?.slug || name.toLowerCase().replace(/\s+/g, "-"),
+          icon: categoryIcons[name] || categoryIcons.Tech, 
         }));
 
         categoryList.sort((a, b) => a.name.localeCompare(b.name));
         setCategories(categoryList);
       } catch (error) {
         console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCategories();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center mt-8">
+      <Loading/>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
@@ -115,6 +71,7 @@ export function CategoryList() {
               key={category.slug}
               to={`/startups?category=${category.slug}`}
               className="flex flex-col items-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border"
+              aria-label={`View startups in ${category.name}`}
             >
               <div className="p-3 rounded-full bg-red-100 mb-3">
                 <Icon className="w-6 h-6 text-red-600" />

@@ -7,84 +7,73 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReviewForm } from "@/components/review-form";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../server/firebase";
-import type { Startup } from "@/types";
+import { mapStartupData } from "../../../utils/mapStartupData";
+import { Startup } from "@/types";
 import { Navbar } from "@/components/utils/Navbar";
 import { Footer } from "@/components/utils/Footer";
-import facebook from "../../../assets/icons8-facebook-48.png";
-import instagram from "../../../assets/icons8-instagram-48.png";
+import { toast, Toaster } from "sonner";
+import Loading from "@/components/utils/Loading";
+import facebook from "../../../assets/icons8-facebook-48.png"
+import instagram from "../../../assets/icons8-instagram-48.png"
 
 const Startups = () => {
   const { id } = useParams<{ id: string }>();
   const [startup, setStartup] = useState<Startup | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setError("No startup ID provided.");
+      setLoading(false);
+      return;
+    }
 
     const fetchStartup = async () => {
       try {
+        setLoading(true);
         const docRef = doc(db, "startups", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          const data = docSnap.data();
-          console.log("Fetched startup data:", data); // Debug log
-          const reviews = Array.isArray(data.reviews) ? data.reviews : [];
-          const rating =
-            typeof data.rating === "number"
-              ? data.rating
-              : reviews.length > 0
-                ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length
-                : 0;
-          setStartup({
-            id: docSnap.id,
-            name: data.name || "",
-            description: data.description || "",
-            category: data.category || "",
-            rating,
-            featured: data.featured || false,
-            foundedYear: data.foundedYear || new Date().getFullYear(),
-            address: data.address || "",
-            imageUrl: data.imageUrl || "",
-            services: data.services || [],
-            social: {
-              facebook: data.social?.facebook || "",
-              instagram: data.social?.instagram || "",
-            },
-            contact: {
-              phone: data.contact?.phone || "",
-              email: data.contact?.email || "",
-              website: data.contact?.website || "",
-            },
-            operatingHours: {
-              Monday: data.operatingHours?.Monday || "9:00 AM - 5:00 PM",
-              Tuesday: data.operatingHours?.Tuesday || "9:00 AM - 5:00 PM",
-              Wednesday: data.operatingHours?.Wednesday || "9:00 AM - 5:00 PM",
-              Thursday: data.operatingHours?.Thursday || "9:00 AM - 5:00 PM",
-              Friday: data.operatingHours?.Friday || "9:00 AM - 5:00 PM",
-              Saturday: data.operatingHours?.Saturday || "Closed",
-              Sunday: data.operatingHours?.Sunday || "Closed",
-            },
-            reviews,
-          });
+          setStartup(mapStartupData(docSnap));
         } else {
-          console.log("No such document!");
-          setStartup(null);
+          setError("Startup not found.");
         }
       } catch (error) {
         console.error("Error fetching startup:", error);
-        setStartup(null);
+        setError("Failed to load startup.");
+        toast.error("Error", { description: "Failed to load startup." });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStartup();
   }, [id]);
 
-  if (!startup) {
+  if (loading) {
     return (
       <div>
         <Navbar />
         <main className="py-32">
           <div className="container max-w-7xl mx-auto px-4 md:px-6">
-            <p>Startup not found</p>
+            <div className="flex justify-center">
+              <Loading />
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (error || !startup) {
+    return (
+      <div>
+        <Navbar />
+        <main className="py-32">
+          <div className="container max-w-7xl mx-auto px-4 md:px-6">
+            <p className="text-red-600">{error || "Startup not found"}</p>
           </div>
         </main>
         <Footer />
@@ -104,6 +93,7 @@ const Startups = () => {
                   <Link
                     to="/startups"
                     className="text-sm text-muted-foreground hover:text-foreground"
+                    aria-label="Back to startups list"
                   >
                     ← Back to startups
                   </Link>
@@ -124,6 +114,7 @@ const Startups = () => {
                         key={i}
                         className={`w-5 h-5 ${i < Math.floor(startup.rating) ? "fill-current" : "stroke-current fill-none"
                           }`}
+                        aria-hidden="true"
                       />
                     ))}
                   <span className="ml-2 text-foreground font-medium">
@@ -136,7 +127,7 @@ const Startups = () => {
               </div>
               <div className="aspect-video w-full overflow-hidden rounded-lg">
                 <img
-                  src={startup.imageUrl ? `${startup.imageUrl}` : "/images/placeholder.jpg"}
+                  src={startup.imageUrl || import.meta.env.VITE_PLACEHOLDER_IMAGE || "/images/placeholder.jpg"}
                   alt={startup.name}
                   className="object-cover w-full h-full"
                   width={800}
@@ -173,6 +164,7 @@ const Startups = () => {
                                   key={i}
                                   className={`w-4 h-4 ${i < review.rating ? "fill-current" : "stroke-current fill-none"
                                     }`}
+                                  aria-hidden="true"
                                 />
                               ))}
                           </div>
@@ -201,8 +193,9 @@ const Startups = () => {
                       <a
                         href={`tel:${startup.contact.phone}`}
                         className="text-sm text-muted-foreground hover:text-foreground"
+                        aria-label={`Call ${startup.contact.phone}`}
                       >
-                        {startup.contact.phone}
+                        {startup.contact.phone || "N/A"}
                       </a>
                     </div>
                   </div>
@@ -213,8 +206,9 @@ const Startups = () => {
                       <a
                         href={`mailto:${startup.contact.email}`}
                         className="text-sm text-muted-foreground hover:text-foreground"
+                        aria-label={`Email ${startup.contact.email}`}
                       >
-                        {startup.contact.email}
+                        {startup.contact.email || "N/A"}
                       </a>
                     </div>
                   </div>
@@ -227,8 +221,9 @@ const Startups = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-sm text-muted-foreground hover:text-foreground"
+                        aria-label={`Visit ${startup.name} website`}
                       >
-                        {startup.contact.website.replace(/^https?:\/\//, "")}
+                        {startup.contact.website.replace(/^https?:\/\//, "") || "N/A"}
                       </a>
                     </div>
                   </div>
@@ -236,7 +231,7 @@ const Startups = () => {
                     <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
                     <div>
                       <div className="font-medium">Address</div>
-                      <div className="text-sm text-muted-foreground">{startup.address}</div>
+                      <div className="text-sm text-muted-foreground">{startup.address || "N/A"}</div>
                     </div>
                   </div>
                 </div>
@@ -244,11 +239,13 @@ const Startups = () => {
               <div className="border rounded-lg p-4">
                 <h2 className="text-xl font-bold mb-4">Services</h2>
                 <div className="space-y-2">
-                  {startup.services.map((service, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <div className="font-medium">{service}</div>
-                    </div>
-                  ))}
+                  {startup.services.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No services listed</p>
+                  ) : (
+                    startup.services.map((service, index) => (
+                      <div key={index} className="font-medium">{service}</div>
+                    ))
+                  )}
                 </div>
               </div>
               <div className="border rounded-lg p-4">
@@ -274,29 +271,32 @@ const Startups = () => {
               </div>
               <div className="border rounded-lg p-4">
                 <h2 className="text-xl font-bold mb-4">Socials</h2>
-                <div className="space-y-2">
-                  <div className="flex justify-center md:justify-start">
-                    <button type="button">
-                      <Link to={startup.social?.facebook || "#"} className="group flex justify-center rounded-md drop-shadow-xl font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
-                        <img src={facebook} alt="" className="w-10 h-10" />
-                        <span className="absolute opacity-0 group-hover:opacity-100  group-hover:text-xs group-hover:-translate-y-6 duration-700">
-                          Facebook
-                        </span>
-                      </Link>
-                    </button>
+                <div className="flex justify-center md:justify-start">
+                  <button type="button">
+                    <Link to={startup.social?.facebook || "#"} className="group flex justify-center rounded-md drop-shadow-xl font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                      <img src={facebook} alt="" className="w-10 h-10" />
+                      <span className="absolute opacity-0 group-hover:opacity-100 group-hover:text-xs group-hover:-translate-y-6 duration-700">
+                        Facebook
+                      </span>
+                    </Link>
+                  </button>
 
-                    <button type="button">
-                      <Link to={startup.social?.instagram || "#"} className="group flex justify-center rounded-md drop-shadow-xl  font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
-                        <img src={instagram} alt="" className="w-10 h-10" />
-                        <span className="absolute opacity-0 group-hover:opacity-100  group-hover:text-xs group-hover:-translate-y-6 duration-700">
-                          Instagram
-                        </span>
-                      </Link>
-                    </button>
-                  </div>
+                  <button type="button">
+                    <Link to={startup.social?.instagram || "#"} className="group flex justify-center rounded-md drop-shadow-xl  font-semibold hover:translate-y-3 hover:rounded-[50%] transition-all duration-500 hover:from-[#331029] hover:to-[#310413]">
+                      <img src={instagram} alt="" className="w-10 h-10" />
+                      <span className="absolute opacity-0 group-hover:opacity-100 e group-hover:text-xs group-hover:-translate-y-6 duration-700">
+                        Instagram
+                      </span>
+                    </Link>
+                  </button>
                 </div>
               </div>
-              <Button className="w-full" asChild>
+              <Button
+                className="w-full"
+                asChild
+                disabled={!startup.contact.website}
+                aria-label={`Visit ${startup.name} website`}
+              >
                 <a href={startup.contact.website} target="_blank" rel="noopener noreferrer">
                   Visit Website
                 </a>
@@ -306,6 +306,7 @@ const Startups = () => {
         </div>
       </main>
       <Footer />
+      <Toaster richColors position="top-center" closeButton={false} />
     </div>
   );
 };

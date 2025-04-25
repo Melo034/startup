@@ -1,6 +1,5 @@
-// AddStartUp.tsx
 import { useState, useEffect } from "react";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,69 +26,37 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "../server/firebase";
-import type { Startup } from "../types";
+import { mapStartupData } from "../utils/mapStartupData";
+import { Startup } from "../types";
 import { Footer } from "@/components/utils/Footer";
 import { Navbar } from "@/components/utils/Navbar";
 import { StartupForm } from "./StartupForm";
+import Loading from "@/components/utils/Loading";
 
 const AddStartUp = () => {
   const [startups, setStartups] = useState<Startup[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
   const [currentStartup, setCurrentStartup] = useState<Startup | null>(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStartups = async () => {
       try {
+        setLoading(true);
         const startupsCollection = collection(db, "startups");
         const startupsSnapshot = await getDocs(startupsCollection);
-        const startupsList: Startup[] = startupsSnapshot.docs.map((docSnapshot) => {
-            const data = docSnapshot.data();
-            const reviews = Array.isArray(data.reviews) ? data.reviews : [];
-            const rating =
-              typeof data.rating === "number"
-                ? data.rating
-                : reviews.length > 0
-                ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length
-                : 0;
-            return {
-              id: docSnapshot.id,
-              name: data.name || "",
-              description: data.description || "",
-              category: data.category || "",
-              rating,
-              featured: data.featured || false,
-              foundedYear: data.foundedYear || new Date().getFullYear(),
-              imageUrl: data.imageUrl || "",
-              contact: {
-                phone: data.contact?.phone || "",
-                email: data.contact?.email || "",
-                website: data.contact?.website || "",
-              },
-              address: data.address || "",
-              operatingHours: {
-                Monday: data.operatingHours?.Monday || "9:00 AM - 5:00 PM",
-                Tuesday: data.operatingHours?.Tuesday || "9:00 AM - 5:00 PM",
-                Wednesday: data.operatingHours?.Wednesday || "9:00 AM - 5:00 PM",
-                Thursday: data.operatingHours?.Thursday || "9:00 AM - 5:00 PM",
-                Friday: data.operatingHours?.Friday || "9:00 AM - 5:00 PM",
-                Saturday: data.operatingHours?.Saturday || "Closed",
-                Sunday: data.operatingHours?.Sunday || "Closed",
-              },
-              reviews,
-              social: {
-                facebook: data.social?.facebook || "",
-                instagram: data.social?.instagram || "",
-              },
-              services: Array.isArray(data.services) ? data.services : [],
-            };
-        });
+        const startupsList = startupsSnapshot.docs.map(mapStartupData);
         setStartups(startupsList);
       } catch (error) {
         console.error("Error fetching startups:", error);
+        toast.error("Error", { description: "Failed to fetch startups." });
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -102,34 +69,61 @@ const AddStartUp = () => {
       await deleteDoc(doc(db, "startups", id));
       setStartups((prev) => prev.filter((startup) => startup.id !== id));
       setIsDeleteDialogOpen(false);
-      toast("Startup deleted", {
+      toast.success("Startup deleted", {
         description: "The startup has been removed from the directory.",
       });
     } catch (error) {
       console.error("Error deleting startup:", error);
-      toast("Error", {
+      toast.error("Error", {
         description: "Failed to delete startup. Please try again.",
       });
     }
   };
 
-  const handleSave = async (startup: Startup, isNew = false) => {
+  const handleSave = async (startup: Startup, isNew: boolean) => {
     try {
+      const { id, ...startupData } = startup;
       if (isNew) {
-        const docRef = await addDoc(collection(db, "startups"), startup);
+        const docRef = await addDoc(collection(db, "startups"), startupData);
         setStartups((prev) => [...prev, { ...startup, id: docRef.id }]);
         setIsAddDialogOpen(false);
-        toast("Startup added", {
+        toast.success("Startup added", {
           description: "The new startup has been added to the directory.",
+        });
+      } else if (id) {
+        const startupRef = doc(db, "startups", id);
+        await setDoc(startupRef, startupData, { merge: true });
+        setStartups((prev) =>
+          prev.map((s) => (s.id === id ? { ...startupData, id } : s))
+        );
+        setIsAddDialogOpen(false);
+        toast.success("Startup updated", {
+          description: "The startup has been updated in the directory.",
         });
       }
     } catch (error) {
       console.error("Error saving startup:", error);
-      toast("Error", {
+      toast.error("Error", {
         description: "Failed to save startup. Please try again.",
       });
     }
   };
+
+  if (loading) {
+    return (
+      <div>
+        <Navbar />
+        <main className="py-32">
+          <div className="container max-w-7xl mx-auto px-4 md:px-6">
+            <div className="flex justify-center">
+              <Loading/>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -148,12 +142,12 @@ const AddStartUp = () => {
               </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="flex items-center gap-1">
+                  <Button className="flex items-center gap-1" aria-label="Add new startup">
                     <Plus className="w-4 h-4" />
                     Add Startup
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[600px]">
+                <DialogContent className="sm:max-w-[600px] max-h-[95vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Add New Startup</DialogTitle>
                     <DialogDescription>
@@ -168,7 +162,7 @@ const AddStartUp = () => {
               </Dialog>
             </div>
             <div className="rounded-lg border">
-              <Table>
+              <Table aria-label="Startups table">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
@@ -180,67 +174,81 @@ const AddStartUp = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {startups.map((startup) => (
-                    <TableRow key={startup.id}>
-                      <TableCell className="font-medium">{startup.name}</TableCell>
-                      <TableCell>{startup.category}</TableCell>
-                      <TableCell>{startup.rating > 0 ? startup.rating.toFixed(1) : "N/A"}</TableCell>
-                      <TableCell>{startup.address}</TableCell>
-                      <TableCell>{startup.contact?.email ?? "N/A"}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => navigate(`/edit/${startup.id}`)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Dialog
-                            open={isDeleteDialogOpen && currentStartup?.id === startup.id}
-                            onOpenChange={(open) => {
-                              setIsDeleteDialogOpen(open);
-                              if (open) setCurrentStartup(startup);
-                            }}
-                          >
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="text-red-500"
-                                onClick={() => setCurrentStartup(startup)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <DialogTitle>Confirm Deletion</DialogTitle>
-                                <DialogDescription>
-                                  Are you sure you want to delete {currentStartup?.name}?
-                                  This action cannot be undone.
-                                </DialogDescription>
-                              </DialogHeader>
-                              <DialogFooter>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setIsDeleteDialogOpen(false)}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  onClick={() => handleDelete(currentStartup?.id)}
-                                >
-                                  Delete
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        </div>
+                  {startups.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                        No startups found
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    startups.map((startup) => (
+                      <TableRow key={startup.id}>
+                        <TableCell className="font-medium">{startup.name}</TableCell>
+                        <TableCell>{startup.category}</TableCell>
+                        <TableCell>
+                          {startup.rating > 0 ? startup.rating.toFixed(1) : "N/A"}
+                        </TableCell>
+                        <TableCell>{startup.address}</TableCell>
+                        <TableCell>{startup.contact?.email ?? "N/A"}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => navigate(`/edit/${startup.id}`)}
+                              aria-label={`Edit ${startup.name}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Dialog
+                              open={isDeleteDialogOpen && currentStartup?.id === startup.id}
+                              onOpenChange={(open) => {
+                                setIsDeleteDialogOpen(open);
+                                if (open) setCurrentStartup(startup);
+                              }}
+                            >
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="text-red-500"
+                                  onClick={() => setCurrentStartup(startup)}
+                                  aria-label={`Delete ${startup.name}`}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Confirm Deletion</DialogTitle>
+                                  <DialogDescription>
+                                    Are you sure you want to delete {currentStartup?.name}?
+                                    This action cannot be undone.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setIsDeleteDialogOpen(false)}
+                                    aria-label="Cancel deletion"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => handleDelete(currentStartup?.id)}
+                                    aria-label={`Confirm delete ${currentStartup?.name}`}
+                                  >
+                                    Delete
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

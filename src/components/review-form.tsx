@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";
 import { db } from "../server/firebase";
 
@@ -22,8 +22,12 @@ export function ReviewForm({ startupId }: ReviewFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (rating < 1 || rating > 5) {
+      toast.error("Error", { description: "Please select a rating between 1 and 5." });
+      return;
+    }
 
+    setIsSubmitting(true);
     const reviewData = {
       name,
       email,
@@ -37,7 +41,7 @@ export function ReviewForm({ startupId }: ReviewFormProps) {
       await updateDoc(startupRef, {
         reviews: arrayUnion(reviewData),
       });
-      toast("Review submitted", {
+      toast.success("Review submitted", {
         description: "Thank you for your feedback!",
       });
       setRating(0);
@@ -46,9 +50,7 @@ export function ReviewForm({ startupId }: ReviewFormProps) {
       setComment("");
     } catch (error) {
       console.error("Error submitting review:", error);
-      toast("Error", {
-        description: "Failed to submit review. Please try again.",
-      });
+      toast.error("Error", { description: "Failed to submit review. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
@@ -58,7 +60,7 @@ export function ReviewForm({ startupId }: ReviewFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4 pt-4">
       <div className="space-y-2">
         <Label htmlFor="rating">Rating</Label>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1" role="radiogroup" aria-label="Rating">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
               key={star}
@@ -68,6 +70,10 @@ export function ReviewForm({ startupId }: ReviewFormProps) {
               onMouseEnter={() => setHoverRating(star)}
               onMouseLeave={() => setHoverRating(0)}
               onClick={() => setRating(star)}
+              role="radio"
+              aria-checked={(hoverRating || rating) >= star}
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && setRating(star)}
             />
           ))}
         </div>
@@ -75,20 +81,45 @@ export function ReviewForm({ startupId }: ReviewFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
+          <Input
+            id="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            aria-required="true"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            aria-required="true"
+          />
         </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="comment">Review</Label>
-        <Textarea id="comment" value={comment} onChange={(e) => setComment(e.target.value)} rows={4} required />
+        <Textarea
+          id="comment"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          rows={4}
+          required
+          aria-required="true"
+        />
       </div>
-      <Button type="submit" disabled={isSubmitting || rating === 0}>
+      <Button
+        type="submit"
+        disabled={isSubmitting || rating === 0}
+        aria-disabled={isSubmitting || rating === 0}
+      >
         {isSubmitting ? "Submitting..." : "Submit Review"}
       </Button>
+      <Toaster richColors position="top-center" closeButton={false} />
     </form>
   );
 }

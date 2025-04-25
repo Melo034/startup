@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { StarIcon } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -6,126 +6,75 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../server/firebase";
-import type { Startup } from "@/types";
-
-const categoryMapping: { [key: string]: { label: string; slug: string } } = {
-  Technology:     { label: "Tech",           slug: "tech" },
-  Fintech:        { label: "Fintech",        slug: "fintech" },
-  Agritech:       { label: "Agritech",       slug: "agritech" },
-  "E-commerce":   { label: "E-commerce",     slug: "ecommerce" },
-  Edutech:        { label: "Edutech",        slug: "edutech" },
-  Entertainment:  { label: "Entertainment",  slug: "entertainment" },
-  Energy:         { label: "Energy",         slug: "energy" },
-  Healthtech:     { label: "Healthtech",     slug: "healthtech" },
-  SaaS:           { label: "SaaS",           slug: "saas" },
-  AI:             { label: "AI & ML",        slug: "ai-ml" },
-  Blockchain:     { label: "Blockchain",     slug: "blockchain" },
-  Cloud:          { label: "Cloud",          slug: "cloud" },
-  SocialImpact:   { label: "Social Impact",  slug: "social-impact" },
-  Cybersecurity:  { label: "Cybersecurity",  slug: "cybersecurity" },
-  BioTech:        { label: "Biotech",        slug: "biotech" },
-  Media:          { label: "Media",          slug: "media" },
-  Mobility:       { label: "Mobility",       slug: "mobility" },
-};
-
-const slugToCategory: { [key: string]: string } = Object.keys(categoryMapping).reduce(
-  (acc, key) => ({
-    ...acc,
-    [categoryMapping[key].slug]: key,
-  }),
-  {},
-);
+import { categoryMapping, slugToCategory } from "../constants";
+import { mapStartupData } from "../utils/mapStartupData";
+import { Startup } from "../types";
+import { toast, Toaster } from "sonner";
+import Loading from "./utils/Loading";
 
 export function StartupList() {
   const [startups, setStartups] = useState<Startup[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStartups = async () => {
       try {
+        setLoading(true);
         const startupsCollection = collection(db, "startups");
         const startupsSnapshot = await getDocs(startupsCollection);
-        const startupsList = startupsSnapshot.docs.map((doc) => {
-          const data = doc.data();
-          console.log("Fetched startup:", data); // Debug log
-          const reviews = Array.isArray(data.reviews) ? data.reviews : [];
-          const rating =
-            typeof data.rating === "number"
-              ? data.rating
-              : reviews.length > 0
-              ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) /
-                reviews.length
-              : 0;
-          return {
-            id: doc.id,
-            name: data.name || "",
-            description: data.description || "",
-            category: data.category || "",
-            rating,
-            featured: data.featured || false,
-            foundedYear: data.foundedYear || new Date().getFullYear(),
-            imageUrl: data.imageUrl || "",
-            contact: {
-              phone: data.contact?.phone || "",
-              email: data.contact?.email || "",
-              website: data.contact?.website || "",
-            },
-            address: data.address || "",
-            operatingHours: {
-              Monday: data.operatingHours?.Monday || "9:00 AM - 5:00 PM",
-              Tuesday: data.operatingHours?.Tuesday || "9:00 AM - 5:00 PM",
-              Wednesday: data.operatingHours?.Wednesday || "9:00 AM - 5:00 PM",
-              Thursday: data.operatingHours?.Thursday || "9:00 AM - 5:00 PM",
-              Friday: data.operatingHours?.Friday || "9:00 AM - 5:00 PM",
-              Saturday: data.operatingHours?.Saturday || "Closed",
-              Sunday: data.operatingHours?.Sunday || "Closed",
-            },
-            reviews,
-            social: data.social || { facebook: "", instagram: "" },
-            services: data.services || [],
-          };
-        });
+        const startupsList = startupsSnapshot.docs.map(mapStartupData);
         setStartups(startupsList);
       } catch (error) {
         console.error("Error fetching startups:", error);
+        setError("Failed to load startups.");
+        toast.error("Error", { description: "Failed to load startups." });
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStartups();
   }, []);
 
-  const filteredStartups = startups.filter((startup) => {
+  const filteredStartups = useMemo(() => {
+    return startups.filter((startup) => {
+      const matchesSearch = [startup.name, startup.description, startup.category]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    const matchesSearch = [startup.name, startup.description, startup.category]
-      .join(" ")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      const selectedCategory = searchParams.get("category");
+      const selectedCategories = searchParams.get("categories")?.split(",") || [];
+      const activeCategories = selectedCategory ? [selectedCategory] : selectedCategories;
+      const matchesCategory =
+        activeCategories.length === 0 ||
+        activeCategories.includes(
+          categoryMapping[startup.category]?.slug ||
+            startup.category.toLowerCase().replace(/\s+/g, "-")
+        ) ||
+        activeCategories.some((slug) => slugToCategory[slug] === startup.category);
 
-    const selectedCategory = searchParams.get("category");
-    const selectedCategories = searchParams.get("categories")?.split(",") || [];
-    const activeCategories = selectedCategory
-      ? [selectedCategory]
-      : selectedCategories;
-    const matchesCategory =
-      activeCategories.length === 0 ||
-      activeCategories.includes(
-        categoryMapping[startup.category]?.slug ||
-          startup.category.toLowerCase().replace(/\s+/g, "-"),
-      ) ||
-      activeCategories.some((slug) => slugToCategory[slug] === startup.category);
+      const minRating = parseFloat(searchParams.get("minRating") || "0");
+      const matchesRating = startup.rating >= minRating;
 
-    const minRating = parseFloat(searchParams.get("minRating") || "0");
-    const rating =
-      typeof startup.rating === "number"
-        ? startup.rating
-        : startup.reviews.length > 0
-        ? startup.reviews.reduce((sum, r) => sum + r.rating, 0) / startup.reviews.length
-        : 0;
-    const matchesRating = rating >= minRating;
+      return matchesSearch && matchesCategory && matchesRating;
+    });
+  }, [startups, searchQuery, searchParams]);
 
-    return matchesSearch && matchesCategory && matchesRating;
-  });
+  if (loading) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loading/>
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-center text-red-600 py-12">{error}</p>;
+  }
 
   return (
     <div className="space-y-4">
@@ -136,6 +85,7 @@ export function StartupList() {
           className="w-full"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Search startups"
         />
       </div>
       {filteredStartups.length === 0 ? (
@@ -151,7 +101,7 @@ export function StartupList() {
                 <CardHeader className="p-0">
                   <div className="aspect-video w-full overflow-hidden">
                     <img
-                      src={startup.imageUrl || "/images/placeholder.jpg"}
+                      src={startup.imageUrl || import.meta.env.VITE_PLACEHOLDER_IMAGE || "/images/placeholder.jpg"}
                       alt={startup.name}
                       className="object-cover w-full h-full transition-transform group-hover:scale-105"
                       width={600}
@@ -179,15 +129,14 @@ export function StartupList() {
                   </p>
                 </CardContent>
                 <CardFooter className="p-4 pt-0 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <div className="truncate">{startup.contact.email || "No email"}</div>
-                  </div>
+                  <div className="truncate">{startup.contact.email || "No email"}</div>
                 </CardFooter>
               </Card>
             </Link>
           ))}
         </div>
       )}
+      <Toaster richColors position="top-center" closeButton={false} />
     </div>
   );
 }

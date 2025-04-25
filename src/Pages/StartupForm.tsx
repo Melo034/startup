@@ -11,20 +11,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import { toast, Toaster } from "sonner";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import type { Startup } from "../types";
+import { Startup } from "../types";
+import { categoryMapping } from "../constants";
+import { Loader2 } from "lucide-react";
+import Loading from "@/components/utils/Loading";
 
 const storage = getStorage();
 
 interface StartupFormProps {
   startup?: Startup;
-  onSave: (startup: Startup) => void;
+  onSave: (startup: Startup) => Promise<void>;
   onCancel: () => void;
 }
 
+const validateUrl = (url: string): boolean => {
+  if (!url) return true; 
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
   const [formData, setFormData] = useState<Startup>({
+    id: startup?.id || "",
     name: startup?.name || "",
     description: startup?.description || "",
     category: startup?.category || "",
@@ -55,9 +69,9 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
     services: startup?.services || [],
   });
 
-
   const [uploading, setUploading] = useState(false);
-
+  const [saving, setSaving] = useState(false);
+  
   const handleCheckboxChange = (checked: boolean) => {
     setFormData((prev) => ({
       ...prev,
@@ -69,17 +83,27 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
     if (name.includes(".")) {
       const [parent, child] = name.split(".");
+      if (parent === "contact" || parent === "social") {
+        setFormData((prev) => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: value,
+          },
+        }));
+      }
+    } else if (name === "services") {
       setFormData((prev) => ({
         ...prev,
-        [parent]: {
-          ...(typeof prev[parent as keyof Startup] === "object" &&
-            prev[parent as keyof Startup] !== null
-            ? (prev[parent as keyof Startup] as unknown as Record<string, unknown>)
-            : {}),
-          [child]: value,
-        },
+        services: value ? value.split(",").map((s) => s.trim()) : [],
+      }));
+    } else if (name === "foundedYear") {
+      setFormData((prev) => ({
+        ...prev,
+        foundedYear: value ? parseInt(value, 10) : new Date().getFullYear(),
       }));
     } else {
       setFormData((prev) => ({
@@ -89,7 +113,10 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
     }
   };
 
-  const handleOperatingHoursChange = (day: keyof Startup["operatingHours"], value: string) => {
+  const handleOperatingHoursChange = (
+    day: keyof Startup["operatingHours"],
+    value: string
+  ) => {
     setFormData((prev) => ({
       ...prev,
       operatingHours: {
@@ -103,73 +130,136 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      toast.error("Invalid file type", {
+        description: "Please upload a JPEG or PNG image.",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large", {
+        description: "Image size must be less than 5MB.",
+      });
+      return;
+    }
+
+    setUploading(true);
     try {
-      setUploading(true);
-      const storageRef = ref(storage, `startupImages/${Date.now()}-${file.name}`);
+      const storageRef = ref(storage, `startups/${Date.now()}_${file.name}`);
       await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(storageRef);
-      setFormData((prev) => ({
-        ...prev,
-        imageUrl: downloadURL,
-      }));
+      setFormData((prev) => ({ ...prev, imageUrl: downloadURL }));
+      toast.success("Image uploaded", {
+        description: "The image has been successfully uploaded.",
+      });
     } catch (error) {
       console.error("Error uploading image:", error);
-      toast("Error", { description: "Failed to upload image. Please try again." });
+      toast.error("Upload failed", {
+        description: "Failed to upload image. Please try again.",
+      });
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+
+    if (!formData.name) {
+      toast.error("Validation error", {
+        description: "Startup name is required.",
+      });
+      return;
+    }
+    if (!formData.category) {
+      toast.error("Validation error", {
+        description: "Category is required.",
+      });
+      return;
+    }
+    if (!formData.description) {
+      toast.error("Validation error", {
+        description: "Description is required.",
+      });
+      return;
+    }
+
+    if (formData.contact.website && !validateUrl(formData.contact.website)) {
+      toast.error("Validation error", {
+        description: "Please enter a valid website URL.",
+      });
+      return;
+    }
+    if (formData.social.facebook && !validateUrl(formData.social.facebook)) {
+      toast.error("Validation error", {
+        description: "Please enter a valid Facebook URL.",
+      });
+      return;
+    }
+    if (formData.social.instagram && !validateUrl(formData.social.instagram)) {
+      toast.error("Validation error", {
+        description: "Please enter a valid Instagram URL.",
+      });
+      return;
+    }
+
+    if (formData.contact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contact.email)) {
+      toast.error("Validation error", {
+        description: "Please enter a valid email address.",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSave(formData);
+    } catch (error) {
+      console.error("Error saving startup:", error);
+      toast.error("Error", {
+        description: "Failed to save startup. Please try again.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 pt-4 sm:max-w-2xl p-6">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="name">Startup Name</Label>
-          <Input
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="category">Category</Label>
-          <Select
-            onValueChange={(value) =>
-              setFormData((prev) => ({ ...prev, category: value }))
-            }
-            value={formData.category}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Technology">Tech</SelectItem>
-              <SelectItem value="Fintech">Fintech</SelectItem>
-              <SelectItem value="Agritech">Agritech</SelectItem>
-              <SelectItem value="E-commerce">E-commerce</SelectItem>
-              <SelectItem value="Edutech">Edutech</SelectItem>
-              <SelectItem value="Entertainment">Entertainment</SelectItem>
-              <SelectItem value="Energy">Energy</SelectItem>
-              <SelectItem value="Healthtech">Healthtech</SelectItem>
-              <SelectItem value="SaaS">SaaS</SelectItem>
-              <SelectItem value="AI">AI & ML</SelectItem>
-              <SelectItem value="Blockchain">Blockchain</SelectItem>
-              <SelectItem value="Cloud">Cloud</SelectItem>
-              <SelectItem value="SocialImpact">Social Impact</SelectItem>
-              <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
-              <SelectItem value="BioTech">Biotech</SelectItem>
-              <SelectItem value="Media">Media</SelectItem>
-              <SelectItem value="Mobility">Mobility</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-6" aria-label="Startup form">
+      <div className="space-y-2">
+        <Label htmlFor="name">Startup Name</Label>
+        <Input
+          id="name"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+          aria-required="true"
+          placeholder="Enter startup name"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="category">Category</Label>
+        <Select
+          value={formData.category}
+          onValueChange={(value) =>
+            setFormData((prev) => ({ ...prev, category: value }))
+          }
+          required
+          aria-required="true"
+        >
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(categoryMapping).map((category) => (
+              <SelectItem key={category} value={category}>
+                {categoryMapping[category].label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
@@ -179,184 +269,201 @@ export function StartupForm({ startup, onSave, onCancel }: StartupFormProps) {
           name="description"
           value={formData.description}
           onChange={handleChange}
-          rows={4}
           required
+          aria-required="true"
+          rows={4}
+          placeholder="Describe the startup"
         />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="imageUpload">Startup Image</Label>
-          <Input
-            id="imageUpload"
-            name="imageUpload"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          {uploading && <p>Uploading...</p>}
-          {formData.imageUrl && (
-            <div className="mt-2">
-              <img
-                src={formData.imageUrl}
-                alt="Startup"
-                className="h-32 w-auto rounded"
-              />
-            </div>
-          )}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="contactInfo.address">Address</Label>
-          <Input
-            id="contactInfo.address"
-            name="contactInfo.address"
-            value={formData.address}
-            onChange={handleChange}
-            required
+      <div className="space-y-2">
+        <Label htmlFor="image">Image</Label>
+        <Input
+          id="image"
+          type="file"
+          accept="image/jpeg,image/png"
+          onChange={handleFileChange}
+          disabled={uploading}
+          aria-describedby="image-help"
+        />
+        <p id="image-help" className="text-sm text-muted-foreground">
+          Upload a JPEG or PNG image (max 5MB).
+        </p>
+        {uploading && (
+          <div className="flex items-center gap-2">
+            <Loading/>
+            <span>Uploading...</span>
+          </div>
+        )}
+        {formData.imageUrl && (
+          <img
+            src={formData.imageUrl}
+            alt="Startup preview"
+            className="mt-2 h-32 w-auto rounded"
+            aria-label="Uploaded startup image preview"
           />
-        </div>
+        )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="contactInfo.phone">Phone</Label>
-          <Input
-            id="contactInfo.phone"
-            name="contactInfo.phone"
-            value={formData.contact.phone}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contactInfo.email">Email</Label>
-          <Input
-            id="contactInfo.email"
-            name="contactInfo.email"
-            type="email"
-            value={formData.contact.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="socialInfo.facebook">Facebook Url</Label>
-          <Input
-            id="socialInfo.facebook"
-            name="socialInfo.facebook"
-            value={formData.social.facebook}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="socialInfo.instagram">Instagram Url</Label>
-          <Input
-            id="socialInfo.instagram"
-            name="socialInfo.instagram"
-            type="text"
-            value={formData.social.instagram}
-            onChange={handleChange}
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="foundedYear">Founded Year</Label>
+        <Input
+          id="foundedYear"
+          name="foundedYear"
+          type="number"
+          value={formData.foundedYear}
+          onChange={handleChange}
+          min={1900}
+          max={new Date().getFullYear()}
+          required
+          aria-required="true"
+          placeholder="Enter founding year"
+        />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="contactInfo.website">Website</Label>
-          <Input
-            id="contactInfo.website"
-            name="contactInfo.website"
-            value={formData.contact.website}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="foundedYear">Founded Year</Label>
-          <Input
-            id="foundedYear"
-            name="foundedYear"
-            type="number"
-            value={formData.foundedYear !== undefined ? formData.foundedYear.toString() : ""}
-            onChange={handleChange}
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="address">Address</Label>
+        <Input
+          id="address"
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Enter address"
+        />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="featured">Featured</Label>
-          <Checkbox
-            id="featured"
-            checked={formData.featured}
-            onCheckedChange={handleCheckboxChange}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="services">Services</Label>
-          <Input
-            id="services"
-            name="services"
-            type="text"
-            value={formData.services.join(", ")}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Operating Hours</h3>
+      <div className="space-y-2">
+        <Label>Contact Information</Label>
         <div className="grid gap-4 sm:grid-cols-2">
-          {(
-            [
-              "Monday",
-              "Tuesday",
-              "Wednesday",
-              "Thursday",
-              "Friday",
-              "Saturday",
-              "Sunday",
-            ] as Array<keyof Startup["operatingHours"]>
-          ).map((day) => (
+          <div className="space-y-2">
+            <Label htmlFor="contact.phone">Phone</Label>
+            <Input
+              id="contact.phone"
+              name="contact.phone"
+              value={formData.contact.phone}
+              onChange={handleChange}
+              placeholder="Enter phone number"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contact.email">Email</Label>
+            <Input
+              id="contact.email"
+              name="contact.email"
+              type="email"
+              value={formData.contact.email}
+              onChange={handleChange}
+              placeholder="Enter email address"
+            />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="contact.website">Website</Label>
+            <Input
+              id="contact.website"
+              name="contact.website"
+              value={formData.contact.website}
+              onChange={handleChange}
+              placeholder="Enter website URL"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Social Media</Label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="social.facebook">Facebook</Label>
+            <Input
+              id="social.facebook"
+              name="social.facebook"
+              value={formData.social.facebook}
+              onChange={handleChange}
+              placeholder="Enter Facebook URL"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="social.instagram">Instagram</Label>
+            <Input
+              id="social.instagram"
+              name="social.instagram"
+              value={formData.social.instagram}
+              onChange={handleChange}
+              placeholder="Enter Instagram URL"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Operating Hours</Label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {Object.keys(formData.operatingHours).map((day) => (
             <div key={day} className="space-y-2">
               <Label htmlFor={`operatingHours.${day}`}>{day}</Label>
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`closed.${day}`}
-                  checked={formData.operatingHours[day as keyof Startup["operatingHours"]] === "Closed"}
-                  onCheckedChange={(checked) =>
-                    handleOperatingHoursChange(day, checked ? "Closed" : "9:00 AM - 5:00 PM")
-                  }
-                />
-                <Label htmlFor={`closed.${day}`}>Closed</Label>
-                <Input
-                  id={`operatingHours.${day}`}
-                  name={`operatingHours.${day}`}
-                  value={formData.operatingHours[day as keyof Startup["operatingHours"]] || ""}
-                  onChange={(e) => handleOperatingHoursChange(day, e.target.value)}
-                  disabled={formData.operatingHours[day as keyof Startup["operatingHours"]] === "Closed"}
-                  placeholder="e.g., 9:00 AM - 5:00 PM"
-                />
-              </div>
+              <Input
+                id={`operatingHours.${day}`}
+                value={formData.operatingHours[day as keyof Startup["operatingHours"]]}
+                onChange={(e) =>
+                  handleOperatingHoursChange(
+                    day as keyof Startup["operatingHours"],
+                    e.target.value
+                  )
+                }
+                placeholder="e.g., 9:00 AM - 5:00 PM"
+              />
             </div>
           ))}
         </div>
       </div>
 
-      <div className="flex gap-2 justify-end pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="space-y-2">
+        <Label htmlFor="services">Services</Label>
+        <Input
+          id="services"
+          name="services"
+          value={formData.services.join(", ")}
+          onChange={handleChange}
+          placeholder="Enter services (comma-separated)"
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="featured"
+          checked={formData.featured}
+          onCheckedChange={handleCheckboxChange}
+          aria-label="Mark as featured"
+        />
+        <Label htmlFor="featured">Mark as Featured</Label>
+      </div>
+
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={saving || uploading}
+          aria-label="Cancel form submission"
+        >
           Cancel
         </Button>
-        <Button type="submit" disabled={uploading}>
-          Save
+        <Button
+          type="submit"
+          disabled={saving || uploading}
+          aria-label="Save startup"
+        >
+          {saving ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              Saving...
+            </>
+          ) : (
+            "Save"
+          )}
         </Button>
       </div>
+      <Toaster richColors position="top-center" closeButton={false} />
     </form>
   );
 }

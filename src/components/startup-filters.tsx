@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Check, ChevronDown, XIcon } from "lucide-react";
+import { Check, ChevronDown, XIcon} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
@@ -15,47 +15,31 @@ import {
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../server/firebase";
 import { useSearchParams } from "react-router-dom";
+import { categoryMapping } from "../constants";
+import Loading from "./utils/Loading";
 
-const categoryMapping: { [key: string]: { label: string; slug: string } } = {
-  Technology:     { label: "Tech",           slug: "tech" },
-  Fintech:        { label: "Fintech",        slug: "fintech" },
-  Agritech:       { label: "Agritech",       slug: "agritech" },
-  "E-commerce":   { label: "E-commerce",     slug: "ecommerce" },
-  Edutech:        { label: "Edutech",        slug: "edutech" },
-  Entertainment:  { label: "Entertainment",  slug: "entertainment" },
-  Energy:         { label: "Energy",         slug: "energy" },
-  Healthtech:     { label: "Healthtech",     slug: "healthtech" },
-  SaaS:           { label: "SaaS",           slug: "saas" },
-  AI:             { label: "AI & ML",        slug: "ai-ml" },
-  Blockchain:     { label: "Blockchain",     slug: "blockchain" },
-  Cloud:          { label: "Cloud",          slug: "cloud" },
-  SocialImpact:   { label: "Social Impact",  slug: "social-impact" },
-  Cybersecurity:  { label: "Cybersecurity",  slug: "cybersecurity" },
-  BioTech:        { label: "Biotech",        slug: "biotech" },
-  Media:          { label: "Media",          slug: "media" },
-  Mobility:       { label: "Mobility",       slug: "mobility" },
-};
-
-export function StartupFilters({
-  onFilterChange,
-}: {
+interface StartupFiltersProps {
   onFilterChange?: (filters: { categories: string[]; minRating: number }) => void;
-}) {
+}
+
+export function StartupFilters({ onFilterChange }: StartupFiltersProps) {
   const [categoryOpen, setCategoryOpen] = useState(true);
   const [ratingOpen, setRatingOpen] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [ratingRange, setRatingRange] = useState([0]);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        setLoading(true);
         const startupsCollection = collection(db, "startups");
         const querySnapshot = await getDocs(startupsCollection);
         const categorySet = new Set<string>();
 
-        querySnapshot.docs.forEach((doc) => {
+        querySnapshot.forEach((doc) => {
           const data = doc.data();
           const category = data.category || "Uncategorized";
           categorySet.add(category);
@@ -65,6 +49,8 @@ export function StartupFilters({
         setCategories(categoryList);
       } catch (error) {
         console.error("Error fetching categories:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -77,9 +63,9 @@ export function StartupFilters({
     setSelectedCategories(
       urlCategories.filter((c) =>
         categories.some(
-          (cat) => (categoryMapping[cat]?.slug || cat.toLowerCase()) === c,
-        ),
-      ),
+          (cat) => (categoryMapping[cat]?.slug || cat.toLowerCase()) === c
+        )
+      )
     );
     setRatingRange([urlMinRating]);
   }, [searchParams, categories]);
@@ -88,7 +74,7 @@ export function StartupFilters({
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
-        : [...prev, category],
+        : [...prev, category]
     );
   }, []);
 
@@ -97,11 +83,7 @@ export function StartupFilters({
       categories: selectedCategories.map(
         (c) =>
           categoryMapping[c]?.slug ||
-          categories
-            .find((cat) => cat === c)
-            ?.toLowerCase()
-            ?.replace(/\s+/g, "-") ||
-          c,
+          c.toLowerCase().replace(/\s+/g, "-")
       ),
       minRating: ratingRange[0],
     };
@@ -132,6 +114,14 @@ export function StartupFilters({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center">
+        <Loading/>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="md:hidden">
@@ -157,6 +147,7 @@ export function StartupFilters({
                     key={category}
                     checked={selectedCategories.includes(category)}
                     onCheckedChange={() => handleCategoryToggle(category)}
+                    aria-label={`Toggle ${displayLabel} filter`}
                   >
                     {displayLabel}
                   </DropdownMenuCheckboxItem>
@@ -187,6 +178,7 @@ export function StartupFilters({
                     <button
                       onClick={() => handleCategoryToggle(category)}
                       className="ml-1 text-red-700 hover:text-red-900"
+                      aria-label={`Remove ${displayLabel} filter`}
                     >
                       <XIcon className="h-4 w-4" />
                     </button>
@@ -196,6 +188,7 @@ export function StartupFilters({
               <button
                 onClick={handleClearFilters}
                 className="text-xs text-muted-foreground hover:text-foreground"
+                aria-label="Clear all filters"
               >
                 Clear all
               </button>
@@ -227,6 +220,7 @@ export function StartupFilters({
                     <div
                       key={category}
                       className="flex items-center space-x-2"
+                      aria-label={`Toggle ${displayLabel} filter`}
                     >
                       <div
                         className={`flex h-4 w-4 items-center justify-center rounded border ${
@@ -235,6 +229,10 @@ export function StartupFilters({
                             : "border-input"
                         }`}
                         onClick={() => handleCategoryToggle(category)}
+                        onKeyDown={(e) => e.key === "Enter" && handleCategoryToggle(category)}
+                        role="checkbox"
+                        aria-checked={selectedCategories.includes(category)}
+                        tabIndex={0}
                       >
                         {selectedCategories.includes(category) && (
                           <Check className="h-3 w-3 text-white" />
@@ -273,6 +271,7 @@ export function StartupFilters({
                 step={0.5}
                 value={ratingRange}
                 onValueChange={setRatingRange}
+                aria-label="Minimum rating filter"
               />
               <div className="flex justify-between">
                 <span className="text-sm">{ratingRange[0]}</span>
@@ -284,7 +283,7 @@ export function StartupFilters({
 
         <Separator />
 
-        <Button className="w-full" onClick={handleApplyFilters}>
+        <Button className="w-full" onClick={handleApplyFilters} aria-label="Apply filters">
           Apply Filters
         </Button>
       </div>

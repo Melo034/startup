@@ -1,46 +1,45 @@
 export interface ContactInfo {
-    phone: string;
-    email: string;
-    website: string;
-  }
+  phone: string;
+  email: string;
+  website: string;
+}
 
-  export interface SocialInfo {
-    facebook: string;
-    instagram: string;
-  }
-  
-  export interface OperatingHours {
-    Monday: string;
-    Tuesday: string;
-    Wednesday: string;
-    Thursday: string;
-    Friday: string;
-    Saturday: string;
-    Sunday: string;
-  }
-  
-  export interface Review {
-    name: string;
-    email: string;
-    rating: number;
-    comment: string;
-    date: string;
-  }
-  
-  export interface Startup {
-    id?: string;
-    name: string;
-    description: string;
-    category: string;
-    rating: number;
-    featured: boolean;
-    foundedYear: number;
-    social: SocialInfo;
-    imageUrl?: string;
-    services: string[];
-    contact: ContactInfo;
-    address: string;
-    operatingHours: OperatingHours;
-    reviews: Review[];
-  }
-  
+export interface SocialInfo {
+  facebook: string;
+  instagram: string;
+}
+
+export interface OperatingHours {
+  Monday: string;
+  Tuesday: string;
+  Wednesday: string;
+  Thursday: string;
+  Friday: string;
+  Saturday: string;
+  Sunday: string;
+}
+
+export interface Review {
+  name: string;
+  email: string;
+  rating: number;
+  comment: string;
+  date: string;
+}
+
+export interface Startup {
+  id?: string;
+  name: string;
+  description: string;
+  category: string;
+  rating: number;
+  featured: boolean;
+  foundedYear: number;
+  social: SocialInfo;
+  imageUrl?: string;
+  services: string[];
+  contact: ContactInfo;
+  address: string;
+  operatingHours: OperatingHours;
+  reviews: Review[];
+}
